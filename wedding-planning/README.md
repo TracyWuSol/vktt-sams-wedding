@@ -158,7 +158,7 @@ LLM_SERVICE_API_KEY=your-api-key
 
 # ── WebUI ──────────────────────────────────────────────────────────────
 FASTAPI_HOST=0.0.0.0
-FASTAPI_PORT=3000
+FASTAPI_PORT=8000
 SESSION_SECRET_KEY=change-me-to-a-random-string
 WEBUI_GATEWAY_ID=a2a_webui_app
 
@@ -175,13 +175,13 @@ LINE_CHANNEL_TOKEN=your-line-channel-token
 LINE_BOT_USER_ID=your-bot-user-id
 
 # ── Dashboard ──────────────────────────────────────────────────────────
-WEDDING_DASHBOARD_URL=http://localhost:3000/wedding_dashboard.html
+WEDDING_DASHBOARD_URL=http://localhost:8000/wedding_dashboard.html
 EOF
 ```
 
 ### Step 3 — Copy the Dashboard to SAM's Static Files
 
-The dashboard must be served on the **same origin** (port 3000) as the SAM WebUI so that `localStorage` is shared between the chat and the dashboard.
+The dashboard must be served on the **same origin** (port 8000) as the SAM WebUI so that `localStorage` is shared between the chat and the dashboard.
 
 ```bash
 # Find SAM's static files directory
@@ -191,7 +191,7 @@ STATIC_DIR=$(python3 -c "import solace_agent_mesh; import os; print(os.path.join
 cp dashboard/wedding_dashboard.html "$STATIC_DIR/wedding_dashboard.html"
 
 echo "Dashboard deployed to: $STATIC_DIR/wedding_dashboard.html"
-echo "Access at: http://localhost:3000/wedding_dashboard.html"
+echo "Access at: http://localhost:8000/wedding_dashboard.html"
 ```
 
 ### Step 4 — Verify File Structure
@@ -281,8 +281,8 @@ This starts the Event Mesh Gateway on port 9000 (configurable in the YAML). It w
 
 | URL | What it is |
 |-----|-----------|
-| `http://localhost:3000` | SAM WebUI — chat with the wedding planning agents |
-| `http://localhost:3000/wedding_dashboard.html` | Live wedding planning dashboard |
+| `http://localhost:8000` | SAM WebUI — chat with the wedding planning agents |
+| `http://localhost:8000/wedding_dashboard.html` | Live wedding planning dashboard |
 
 ---
 
@@ -325,7 +325,7 @@ The **WeddingVenueAgent** will guide you through:
 
 ## 📊 Dashboard
 
-The dashboard at `http://localhost:3000/wedding_dashboard.html` shows:
+The dashboard at `http://localhost:8000/wedding_dashboard.html` shows:
 
 - **Progress bar** — percentage of planning steps completed
 - **Vendor cards** — Venue, Catering, Decoration, Photography with step indicators:
@@ -363,7 +363,7 @@ All vendors in the CSV databases are configured with `samdevuser@gmail.com` as t
 
 Set `WEDDING_DASHBOARD_URL` in `.env`:
 ```bash
-WEDDING_DASHBOARD_URL=http://localhost:3000/wedding_dashboard.html
+WEDDING_DASHBOARD_URL=http://localhost:8000/wedding_dashboard.html
 ```
 
 This URL is embedded in every agent response as a persistent link.
@@ -444,7 +444,7 @@ The OrchestratorAgent can call this tool automatically when processing S3 events
 | `SSL: CERTIFICATE_VERIFY_FAILED` | macOS Python SSL certs | Install certifi and use `ssl.create_default_context(cafile=certifi.where())` |
 | `UnicodeEncodeError: ascii codec` | Non-breaking space in App Password | Strip with `"".join(c for c in pwd if ord(c) < 128).strip()` |
 | Email goes to `sam@dev.local` | Tool not registered in YAML | Add the tool to the `tools:` list in the agent YAML |
-| Dashboard not updating | Different `localStorage` origin | Serve dashboard from same port (3000) as SAM WebUI |
+| Dashboard not updating | Different `localStorage` origin | Serve dashboard from same port (8000) as SAM WebUI |
 
 ---
 
@@ -455,7 +455,7 @@ The OrchestratorAgent can call this tool automatically when processing S3 events
 3. **Local currency pricing** — each city uses its own currency (GBP, JPY, USD, EUR, INR, KRW, SGD, AUD).
 4. **SMTP in each agent's tools.py** — each agent sends its own booking email directly from the vendor's `contact_email` in the CSV, avoiding incorrect hardcoded addresses.
 5. **`request_venue_booking` tool** — venue bookings use a dedicated tool (not EmailAgent) to ensure the correct CSV email address is used.
-6. **Dashboard on same origin** — `localStorage` requires same-origin access; the dashboard must be served from port 3000.
+6. **Dashboard on same origin** — `localStorage` requires same-origin access; the dashboard must be served from port 8000.
 7. **`localStorage` polling** — dashboard polls every 3 seconds instead of relying on `postMessage` which doesn't work cross-tab.
 8. **Event Mesh Gateway** — a second SAM gateway that bridges external Solace topics (S3 events, alerts) into the SAM control plane, enabling integration with external event sources without modifying agent code.
 9. **LINE tool in OrchestratorAgent** — the orchestrator can send LINE messages to guests directly via the LINE Messaging API, triggered by S3 events or user requests.
