@@ -9,7 +9,7 @@ A combined wedding demo with two main applications:
 ### [Wedding Planning with SAM](http://ec2-13-212-37-115.ap-southeast-1.compute.amazonaws.com:8000)
 ### [Wedding Photo Sharing](http://ec2-3-98-67-252.ca-central-1.compute.amazonaws.com)
 
-## Subproject documentation
+## Documentation
 - [Wedding Planning with SAM](/wedding-planning/README.md)
 - [Wedding Photo Sharing](/wedding-photo-sharing/README.md)
 
