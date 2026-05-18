@@ -1,0 +1,21 @@
+{
+  "name": "wedding-photo-email-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "nodemailer": "^6.9.13",
+    "solclientjs": "^10.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/nodemailer": "^6.4.15",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  }
+}

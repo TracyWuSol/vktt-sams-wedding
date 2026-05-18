@@ -1,0 +1,53 @@
+{
+  "name": "wedding-photo-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest --forceExit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-rekognition": "^3.600.0",
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
+    "sharp": "^0.34.5",
+    "solclientjs": "^10.9.1",
+    "twilio": "^5.1.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.14.0",
+    "@types/nodemailer": "^6.4.15",
+    "@types/sharp": "^0.31.1",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^9.0.8",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.json"
+      }
+    }
+  }
+}
