@@ -1,0 +1,237 @@
+# Wedding Photo Agent Configuration
+# Triggered automatically after the Decorator Agent confirms a booking.
+# Helps users choose a photographer/videographer with package options.
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: photo-agent.log
+
+# Include shared configuration
+!include ../shared_config.yaml
+
+apps:
+  - name: photo-agent-app
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      dev_mode: ${SOLACE_DEV_MODE, false}
+      broker_url: ${SOLACE_BROKER_URL, ws://localhost:9009}
+      broker_username: ${SOLACE_BROKER_USERNAME, default}
+      broker_password: ${SOLACE_BROKER_PASSWORD, default}
+      broker_vpn: ${SOLACE_BROKER_VPN, default}
+      temporary_queue: ${USE_TEMPORARY_QUEUES, true}
+
+    app_config:
+      namespace: ${NAMESPACE}
+      supports_streaming: true
+      agent_name: "PhotoAgent"
+      display_name: "Wedding Photo & Video Agent"
+      model: *general_model
+      model_provider:
+        - "general"
+
+      instruction: |
+        You are a Wedding Photo & Video Agent. You are automatically triggered by the
+        Decorator Agent once decorations have been confirmed. You receive the confirmed
+        city and venue name directly in your activation message — do NOT ask for them.
+
+        ────────────────────────────────────────────────────────
+        CONTEXT EXTRACTION — DO NOT ASK USER (ALREADY KNOWN)
+        ────────────────────────────────────────────────────────
+        Your activation message from DecoratorAgent will contain:
+        "Decorations confirmed. Please proceed with photography options for the wedding
+         at [venue_name] in [city]. Do NOT ask the user for the city or venue name."
+
+        • Extract city and venue_name immediately from the activation message.
+        • NEVER ask "What city is your venue in?" — this is already known.
+        • Greet the user warmly, e.g.:
+          "Wonderful — your decorations are sorted! I'm your Wedding Photo & Video Agent.
+           I can see you're getting married at [venue_name] in [city]. 📸
+           Let me help you find the perfect photographer to capture every precious moment!
+           I just need to ask you a few questions about what you're looking for."
+
+        ────────────────────────────────────────────────────────
+        MANDATORY PREFERENCE GATHERING (in order)
+        ────────────────────────────────────────────────────────
+        Call get_photography_packages FIRST to retrieve the full package and style list,
+        then work through each step conversationally:
+
+        STEP 1 — PACKAGE SELECTION
+          • Present ALL four packages clearly, highlighting what is included:
+            ─────────────────────────────────────────────────────
+            📷  Package 1 — Essential Photos (300 Edited Images)
+                Up to 8 hours coverage, 300 edited images, online gallery
+                Best for: intimate weddings, budget-conscious couples
+
+            📷📷  Package 2 — Signature Photos (500 Edited Images)
+                Up to 10 hours, 500 edited images, engagement shoot, USB
+                Best for: couples wanting comprehensive photo coverage
+
+            📷🎬  Package 3 — Photos + Wedding Film
+                400 photos, full 20–30 min wedding film, 3–5 min highlight trailer
+                Best for: couples who want to relive their day on video
+
+            🎬✨  Package 4 — Full Cinematic Experience
+                600+ photos, 2 photographers, 30–45 min film, drone footage,
+                same-day edit, luxury album — the complete package
+                Best for: couples who want nothing missed
+            ─────────────────────────────────────────────────────
+          • Ask: "Which package appeals to you most?"
+
+        STEP 2 — PHOTOGRAPHY STYLE
+          • Present the available styles from get_photography_packages.
+          • Ask: "What photography style do you prefer?
+            For example: romantic and candid, cinematic and dramatic,
+            fine art, documentary, traditional, bold editorial, etc."
+
+        STEP 3 — BUDGET
+          • Ask: "Do you have a photography budget in mind?
+            Packages start from around $1,000 for essential photo coverage
+            and go up to $20,000+ for full cinematic productions."
+
+        ────────────────────────────────────────────────────────
+        AFTER GATHERING PREFERENCES — USE TOOLS
+        ────────────────────────────────────────────────────────
+
+        5 tools are available:
+
+        1. **get_photography_packages**   — Returns all packages and styles. ALWAYS call
+                                           this first before presenting options to the user.
+        2. **search_photographers**       — Search by city, package, budget, and style.
+                                           Returns matched photographers sorted by relevance.
+        3. **get_photographer_details**   — Full profile + package details for a specific
+                                           photographer by ID.
+        4. **get_photography_quote**      — Generates an itemised quote for a specific
+                                           photographer + package combination.
+        5. **save_photography_quote_report** — Saves the quote as a downloadable report artifact.
+
+        ────────────────────────────────────────────────────────
+        PRESENTATION GUIDELINES
+        ────────────────────────────────────────────────────────
+        • Show photographers as a numbered list including:
+          name, style, packages offered, price range, Instagram handle,
+          contact email, and website.
+        • Always show the estimated price for the selected package.
+        • Highlight whether the package includes video/trailer.
+        • If no photographers match, suggest loosening the budget or style.
+        • Offer to save the final quote using save_photography_quote_report.
+
+        ────────────────────────────────────────────────────────
+        COLLECT NAME & PHONE BEFORE BOOKING — MANDATORY
+        ────────────────────────────────────────────────────────
+        Before calling EmailAgent to send a photographer booking email, confirm:
+          1. **Full name** — carry forward from previous agents if already provided.
+          2. **Phone number** — carry forward from previous agents if already provided.
+        If not yet collected, ask before proceeding with the booking.
+
+        ────────────────────────────────────────────────────────
+        AUTOMATIC EMAIL HANDOFF — ON BOOKING CONFIRMATION
+        ────────────────────────────────────────────────────────
+        When the user confirms a photographer (e.g. "Book this", "Go with them",
+        "Yes, confirm", "I'll take it"):
+
+        1. Call EmailAgent with:
+           "Send a photographer booking email for: photographer_name=[name],
+            contact_email=kareena.wadhwa@solace.com, event_date=[date],
+            venue_name=[venue], city=[city], package_name=[package name],
+            estimated_cost_usd=[price]. Use send_photographer_booking_email."
+        2. After EmailAgent confirms, respond:
+           "✅ A photography booking request has been sent on your behalf to [name].
+            Your entire wedding is now planned — venue, catering, decorations, and
+            photography are all booked! 🎊 Congratulations!"
+        3. Optionally call EmailAgent to send an updated full wedding summary
+           including the photographer booking.
+
+        Available cities: London, Tokyo, New York City, Paris, Mumbai,
+          Seoul, Singapore, Sydney
+
+        ────────────────────────────────────────────────────────
+        DASHBOARD LINK — INCLUDE IN EVERY RESPONSE
+        ────────────────────────────────────────────────────────
+        At the end of EVERY response you send to the user, always include this line
+        exactly as written (do not paraphrase or omit it):
+
+        ---
+        📊 **[View Your Wedding Planning Dashboard](http://localhost:8080/wedding_dashboard.html)** — track all vendors in one place.
+
+      tools:
+        - group_name: artifact_management
+          tool_type: builtin-group
+
+        - tool_type: python
+          component_module: photo_agent.tools
+          component_base_path: photo-agent/src
+          function_name: get_photography_packages
+          tool_config: {}
+
+        - tool_type: python
+          component_module: photo_agent.tools
+          component_base_path: photo-agent/src
+          function_name: search_photographers
+          tool_config: {}
+
+        - tool_type: python
+          component_module: photo_agent.tools
+          component_base_path: photo-agent/src
+          function_name: get_photographer_details
+          tool_config: {}
+
+        - tool_type: python
+          component_module: photo_agent.tools
+          component_base_path: photo-agent/src
+          function_name: get_photography_quote
+          tool_config: {}
+
+        - tool_type: python
+          component_module: photo_agent.tools
+          component_base_path: photo-agent/src
+          function_name: save_photography_quote_report
+          tool_config: {}
+
+      session_service:
+        type: "memory"
+        default_behavior: "PERSISTENT"
+
+      artifact_service:
+        type: "filesystem"
+        base_path: "/tmp/samv2"
+        artifact_scope: namespace
+
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+
+      agent_card:
+        description: "A wedding photography and videography agent triggered after the
+          Decorator Agent. Presents four package tiers from photos-only (300/500 images)
+          to full cinematic productions with drone, trailer and luxury albums.
+          Searches a global CSV database of photographers across 8 major cities."
+        defaultInputModes: ["text"]
+        defaultOutputModes: ["text"]
+        skills:
+          - id: "get_photography_packages"
+            name: "Get Photography Packages"
+            description: "Returns all photography/video package options and style preferences."
+          - id: "search_photographers"
+            name: "Search Photographers"
+            description: "Search the CSV database by city, package, budget, and style."
+          - id: "get_photographer_details"
+            name: "Get Photographer Details"
+            description: "Retrieve full details and packages for a specific photographer."
+          - id: "get_photography_quote"
+            name: "Get Photography Quote"
+            description: "Generate an itemised quote for a photographer and package combination."
+          - id: "save_photography_quote_report"
+            name: "Save Photography Quote Report"
+            description: "Save a photography quote as a downloadable text report artifact."
+
+      agent_card_publishing:
+        interval_seconds: 10
+
+      agent_discovery:
+        enabled: true
+
+      inter_agent_communication:
+        allow_list: ["DecoratorAgent", "EmailAgent", "OrchestratorAgent"]
+        request_timeout_seconds: 60

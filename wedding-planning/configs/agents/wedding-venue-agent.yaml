@@ -1,0 +1,197 @@
+# Wedding Venue Agent Configuration
+# A specialized agent for finding available wedding venues based on dates, budget, and function type.
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: wedding-venue-agent.log
+
+# Include shared configuration
+!include ../shared_config.yaml
+
+apps:
+  - name: wedding-venue-agent-app
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      dev_mode: ${SOLACE_DEV_MODE, false}
+      broker_url: ${SOLACE_BROKER_URL, ws://localhost:9009}
+      broker_username: ${SOLACE_BROKER_USERNAME, default}
+      broker_password: ${SOLACE_BROKER_PASSWORD, default}
+      broker_vpn: ${SOLACE_BROKER_VPN, default}
+      temporary_queue: ${USE_TEMPORARY_QUEUES, true}
+
+    # App Level Config
+    app_config:
+      namespace: ${NAMESPACE}
+      supports_streaming: true
+      agent_name: "WeddingVenueAgent"
+      display_name: "Wedding Venue Agent"
+      model: *general_model
+      model_provider:
+        - "general"
+
+      instruction: |
+        You are a Wedding Venue Agent specialized in helping users find and book wedding venues.
+
+        MANDATORY PRE-SEARCH REQUIREMENTS:
+        Before you use ANY search or venue tool, you MUST have ALL of the following information
+        from the user. If any piece is missing, ask for it explicitly — do not guess or assume defaults.
+
+        Required information:
+        1. **Number of people** – How many guests are expected to attend?
+        2. **Location** – What city, area, or region are they looking for venues in?
+        3. **Date** – What is the event date (or preferred date range)?
+        4. **Event description** – What type of event is it?
+           Examples: reception, ceremony, ceremony & reception, haldi, mehndi,
+           rehearsal dinner, bridal shower, engagement party, sangeet, etc.
+
+        If the user has not provided all four pieces of information, respond ONLY with a
+        polite request for the missing details. Do NOT call any tools until all four are confirmed.
+
+        You have access to 5 tools:
+        1. **search_venues** - Search for available venues based on dates, budget, guest count, function type, venue type, and location preferences
+        2. **get_venue_details** - Get detailed information about a specific venue by its ID
+        3. **check_venue_availability** - Check if a specific venue is available on a given date
+        4. **get_venue_quote** - Generate a pricing quote for a venue with guest count and function type
+        5. **save_venue_search_report** - Run a venue search and save the results as a text report artifact
+
+        Use these tools to help users:
+        - Find venues that match their date range and budget
+        - Get detailed information about venues they're interested in
+        - Check availability for specific dates
+        - Generate quotes for planning purposes
+        - Save search results for later reference
+
+        Available venue types: hotel, banquet_hall, garden, beach, winery, barn, mansion, restaurant, country_club, museum
+        Available function types: ceremony, reception, ceremony_and_reception, rehearsal_dinner, bridal_shower, engagement_party
+
+        ────────────────────────────────────────────────────────
+        AUTOMATIC CATERING HANDOFF — CRITICAL
+        ────────────────────────────────────────────────────────
+        Once the user has confirmed a venue selection or accepted a venue quote,
+        you MUST immediately and automatically trigger the CateringAgent WITHOUT
+        asking the user for permission. Do the following:
+
+        1. Extract the confirmed guest_count from the current conversation context.
+        2. Pass the following structured handoff message to the CateringAgent:
+           "A venue has been confirmed for [guest_count] guests for a [event_type] on [date]
+            at [venue_name], [location]. Please proceed with catering options for [guest_count] guests.
+            Do NOT ask the user for the guest count — it is [guest_count]."
+        3. The CateringAgent will take it from there — you do not need to do anything further.
+
+        ────────────────────────────────────────────────────────
+        COLLECT NAME & PHONE BEFORE BOOKING — MANDATORY
+        ────────────────────────────────────────────────────────
+        Before calling request_venue_booking, you MUST collect from the user:
+          1. **Full name** — "Could I get your full name for the booking request?"
+          2. **Phone number** — "And your best contact number to include in the email?"
+        Do NOT proceed with the booking until both are provided.
+
+        A venue is considered confirmed when the user says something like:
+        "Book this venue", "Go with this one", "I'll take it", or similar affirmation.
+
+        BOOKING FLOW — use request_venue_booking tool directly:
+        1. Call **request_venue_booking** with venue_id, guest_count, event_date,
+           event_type, requester_name, and requester_phone.
+           The tool reads the venue contact email from the CSV and sends the email.
+           DO NOT use EmailAgent — it does not know the venue's correct email address.
+        2. After the tool returns success, tell the user:
+           "A booking request has been sent on your behalf. This is a request only —
+            your booking is NOT confirmed until the venue replies directly to you."
+        3. Immediately trigger CateringAgent with the venue context.
+
+        ────────────────────────────────────────────────────────
+        DASHBOARD LINK — INCLUDE IN EVERY RESPONSE
+        ────────────────────────────────────────────────────────
+        At the end of EVERY response you send to the user, always include this line
+        exactly as written (do not paraphrase or omit it):
+
+        ---
+        📊 **[View Your Wedding Planning Dashboard](http://localhost:8080/wedding_dashboard.html)** — track all vendors in one place.
+
+      tools:
+        - group_name: artifact_management
+          tool_type: builtin-group
+
+        # Wedding Venue Agent Python Tools
+        # component_base_path is relative to where SAM loads the agent from
+        - tool_type: python
+          component_module: wedding_venue_agent.tools
+          component_base_path: wedding-venue-agent/src
+          function_name: search_venues
+          tool_config: {}
+
+        - tool_type: python
+          component_module: wedding_venue_agent.tools
+          component_base_path: wedding-venue-agent/src
+          function_name: get_venue_details
+          tool_config: {}
+
+        - tool_type: python
+          component_module: wedding_venue_agent.tools
+          component_base_path: wedding-venue-agent/src
+          function_name: check_venue_availability
+          tool_config: {}
+
+        - tool_type: python
+          component_module: wedding_venue_agent.tools
+          component_base_path: wedding-venue-agent/src
+          function_name: get_venue_quote
+          tool_config: {}
+
+        - tool_type: python
+          component_module: wedding_venue_agent.tools
+          component_base_path: wedding-venue-agent/src
+          function_name: request_venue_booking
+          tool_config: {}
+
+        - tool_type: python
+          component_module: wedding_venue_agent.tools
+          component_base_path: wedding-venue-agent/src
+          function_name: save_venue_search_report
+          tool_config: {}
+
+      session_service:
+        type: "memory"
+        default_behavior: "PERSISTENT"
+
+      artifact_service:
+        type: "filesystem"
+        base_path: "/tmp/samv2"
+        artifact_scope: namespace
+
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+
+      agent_card:
+        description: "A specialized agent for finding available wedding venues based on dates, budget, and function type."
+        defaultInputModes: ["text"]
+        defaultOutputModes: ["text"]
+        skills:
+          - id: "search_venues"
+            name: "Search Venues"
+            description: "Search for available wedding venues based on dates, budget, guest count, function type, venue type, and location."
+          - id: "get_venue_details"
+            name: "Get Venue Details"
+            description: "Retrieve full details for a single wedding venue by its ID."
+          - id: "check_venue_availability"
+            name: "Check Venue Availability"
+            description: "Check whether a specific venue is available on a given date."
+          - id: "get_venue_quote"
+            name: "Get Venue Quote"
+            description: "Generate a detailed pricing quote for a wedding venue."
+          - id: "save_venue_search_report"
+            name: "Save Venue Search Report"
+            description: "Run a venue search and save the results as a text report artifact."
+
+      agent_card_publishing:
+        interval_seconds: 10
+
+      agent_discovery:
+        enabled: false
+
+      inter_agent_communication:
+        allow_list: ["CateringAgent"]
+        request_timeout_seconds: 60

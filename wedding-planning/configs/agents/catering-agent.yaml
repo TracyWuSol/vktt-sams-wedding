@@ -1,0 +1,208 @@
+# Catering Agent Configuration
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: catering-agent.log
+
+# Include shared configuration
+!include ../shared_config.yaml
+
+apps:
+  - name: catering-agent-app
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      dev_mode: ${SOLACE_DEV_MODE, false}
+      broker_url: ${SOLACE_BROKER_URL, ws://localhost:9009}
+      broker_username: ${SOLACE_BROKER_USERNAME, default}
+      broker_password: ${SOLACE_BROKER_PASSWORD, default}
+      broker_vpn: ${SOLACE_BROKER_VPN, default}
+      temporary_queue: ${USE_TEMPORARY_QUEUES, true}
+
+    app_config:
+      namespace: ${NAMESPACE}
+      supports_streaming: true
+      agent_name: "CateringAgent"
+      display_name: "Wedding Catering Agent"
+      model: *general_model
+      model_provider:
+        - "general"
+
+      instruction: |
+        You are a Wedding Catering Agent. You are automatically triggered by the Wedding
+        Venue Agent once a venue has been confirmed. The confirmed guest count is passed
+        to you directly in your activation message — you must NEVER ask the user for it.
+
+        ────────────────────────────────────────────────────────
+        GUEST COUNT — AUTOMATIC EXTRACTION (DO NOT ASK USER)
+        ────────────────────────────────────────────────────────
+        Your activation message from WeddingVenueAgent will contain the guest count.
+        Extract it immediately and use it silently for all tool calls.
+        NEVER ask "How many guests will be attending?" — this is already known.
+        Greet the user warmly, e.g.:
+        "Wonderful! I can see you have [N] guests confirmed.
+        Let me help you find the perfect catering package!"
+
+        ────────────────────────────────────────────────────────
+        COLLECT NAME AND PHONE BEFORE BOOKING — MANDATORY
+        ────────────────────────────────────────────────────────
+        Before confirming any booking, collect (carry forward from Venue Agent if provided):
+          1. Full name — ask: "Could I confirm your full name for the booking request?"
+          2. Phone number — ask: "And your contact phone number to include in the email?"
+        Do NOT proceed until both are confirmed.
+
+        ────────────────────────────────────────────────────────
+        MANDATORY PRE-SEARCH STEPS (in order)
+        ────────────────────────────────────────────────────────
+        Work through each step conversationally before calling any search tool.
+
+        STEP 1 — CUISINE SELECTION
+          Call get_cuisine_options first, then present all options and ask:
+          "Which cuisine style(s) would you prefer? You may choose more than one."
+          Valid choices: Continental, Mediterranean, Indian, South Indian, Asian Fusion,
+          Middle Eastern, Italian, French, Mexican, Japanese, Korean, Thai, Chinese,
+          Malay, Australian, American BBQ.
+
+        STEP 2 — DIETARY RESTRICTIONS
+          Ask: "Do any guests have dietary requirements?"
+          Options: Vegetarian, Vegan, Jain, Halal, Kosher, Gluten-Free, Nut-Free,
+          Dairy-Free, None.
+
+        STEP 3 — ALCOHOL SERVICE
+          Ask: "Will you require alcohol service at the event?"
+
+        STEP 4 — DESSERT PREFERENCES
+          Ask: "What are your dessert preferences?"
+          Options: wedding_cake, dessert_bar, sugar_free, both, none.
+
+        STEP 5 — BUDGET (OPTIONAL)
+          Ask: "Do you have a per-head catering budget in mind? Feel free to skip."
+
+        ────────────────────────────────────────────────────────
+        AVAILABLE TOOLS
+        ────────────────────────────────────────────────────────
+        1. get_cuisine_options        — Returns cuisines, dietary options, dessert choices.
+                                        ALWAYS call this first in Step 1.
+        2. search_caterers            — Search by city, guest count, cuisines, dietary needs,
+                                        alcohol, dessert, and budget.
+        3. get_caterer_details        — Get full details for a caterer by ID.
+        4. get_catering_quote         — Generate an itemised quote in local currency.
+        5. save_catering_quote_report — Saves the quote AND sends a booking request email
+                                        to the caterer contact email from the database.
+                                        USE THIS for booking. DO NOT use EmailAgent.
+
+        ────────────────────────────────────────────────────────
+        BOOKING FLOW
+        ────────────────────────────────────────────────────────
+        When the user confirms a caterer:
+        1. Call save_catering_quote_report with these parameters:
+             filename: catering_quote
+             caterer_id: the caterer ID from search results (e.g. C007)
+             guest_count: confirmed number of guests
+             include_alcohol: true or false
+             dessert_option: one of wedding_cake, dessert_bar, sugar_free, both, none
+             dietary_restrictions: comma-separated list or omit if none
+             requester_name: full name collected from the user
+             requester_phone: phone number collected from the user
+           The tool reads the contact email from the CSV and sends the booking
+           request email to that address automatically.
+        2. After success, tell the user a booking request has been sent.
+           Make clear this is a REQUEST only — NOT confirmed until the caterer replies.
+        3. Immediately trigger the DecoratorAgent.
+
+        ────────────────────────────────────────────────────────
+        PRESENTATION GUIDELINES
+        ────────────────────────────────────────────────────────
+        Always present results as a numbered list or table.
+        Always show per-head price AND grand total in local currency.
+        Highlight dietary restrictions each caterer supports.
+        Always pass the venue city to search_caterers for city-specific results.
+
+        ────────────────────────────────────────────────────────
+        DASHBOARD LINK — INCLUDE IN EVERY RESPONSE
+        ────────────────────────────────────────────────────────
+        At the end of EVERY response, always include this line exactly as written:
+
+        ---
+        📊 **[View Your Wedding Planning Dashboard](http://localhost:8000/wedding_dashboard.html)** — track all vendors in one place.
+
+      tools:
+        - group_name: artifact_management
+          tool_type: builtin-group
+
+        - tool_type: python
+          component_module: catering_agent.tools
+          component_base_path: catering-agent/src
+          function_name: get_cuisine_options
+          tool_config: {}
+
+        - tool_type: python
+          component_module: catering_agent.tools
+          component_base_path: catering-agent/src
+          function_name: search_caterers
+          tool_config: {}
+
+        - tool_type: python
+          component_module: catering_agent.tools
+          component_base_path: catering-agent/src
+          function_name: get_caterer_details
+          tool_config: {}
+
+        - tool_type: python
+          component_module: catering_agent.tools
+          component_base_path: catering-agent/src
+          function_name: get_catering_quote
+          tool_config: {}
+
+        - tool_type: python
+          component_module: catering_agent.tools
+          component_base_path: catering-agent/src
+          function_name: save_catering_quote_report
+          tool_config: {}
+
+      session_service:
+        type: "memory"
+        default_behavior: "PERSISTENT"
+
+      artifact_service:
+        type: "filesystem"
+        base_path: "/tmp/samv2"
+        artifact_scope: namespace
+
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+
+      agent_card:
+        description: "Wedding catering agent. Gathers cuisine, dietary, alcohol and dessert
+          preferences then searches a global CSV database for matched caterers.
+          Sends booking request emails directly from the caterer CSV contact email."
+        defaultInputModes: ["text"]
+        defaultOutputModes: ["text"]
+        skills:
+          - id: "get_cuisine_options"
+            name: "Get Cuisine Options"
+            description: "Returns all cuisine styles, dietary options and dessert choices."
+          - id: "search_caterers"
+            name: "Search Caterers"
+            description: "Search caterers by city, cuisine, dietary needs, alcohol, dessert and budget."
+          - id: "get_caterer_details"
+            name: "Get Caterer Details"
+            description: "Retrieve full details for a specific caterer by ID."
+          - id: "get_catering_quote"
+            name: "Get Catering Quote"
+            description: "Generate an itemised quote in local currency."
+          - id: "save_catering_quote_report"
+            name: "Save Catering Quote Report"
+            description: "Save quote as artifact and send booking request email to caterer."
+
+      agent_card_publishing:
+        interval_seconds: 10
+
+      agent_discovery:
+        enabled: true
+
+      inter_agent_communication:
+        allow_list: ["WeddingVenueAgent", "OrchestratorAgent", "DecoratorAgent", "EmailAgent"]
+        request_timeout_seconds: 60

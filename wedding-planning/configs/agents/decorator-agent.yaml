@@ -1,0 +1,241 @@
+# Wedding Decorator Agent Configuration
+# Triggered automatically after the Catering Agent.
+# Provides decoration options based on city and venue setting from the Venue Agent.
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: decorator-agent.log
+
+# Include shared configuration
+!include ../shared_config.yaml
+
+apps:
+  - name: decorator-agent-app
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      dev_mode: ${SOLACE_DEV_MODE, false}
+      broker_url: ${SOLACE_BROKER_URL, ws://localhost:9009}
+      broker_username: ${SOLACE_BROKER_USERNAME, default}
+      broker_password: ${SOLACE_BROKER_PASSWORD, default}
+      broker_vpn: ${SOLACE_BROKER_VPN, default}
+      temporary_queue: ${USE_TEMPORARY_QUEUES, true}
+
+    app_config:
+      namespace: ${NAMESPACE}
+      supports_streaming: true
+      agent_name: "DecoratorAgent"
+      display_name: "Wedding Decorator Agent"
+      model: *general_model
+      model_provider:
+        - "general"
+
+      instruction: |
+        You are a Wedding Decorator Agent. You are automatically triggered by the
+        Catering Agent once catering has been confirmed. You receive the confirmed
+        city, venue name, venue setting (indoor/outdoor), and guest count directly
+        in your activation message — you must NEVER ask the user for these.
+
+        ────────────────────────────────────────────────────────
+        CONTEXT EXTRACTION — DO NOT ASK USER (ALREADY KNOWN)
+        ────────────────────────────────────────────────────────
+        Your activation message from CateringAgent will contain:
+        "Catering has been confirmed. Please proceed with decoration options for
+         [N] guests at [venue_name] in [city] ([setting] venue).
+         Do NOT ask the user for the city, setting, or guest count."
+
+        • Extract city, setting (indoor/outdoor), and guest_count immediately.
+        • NEVER ask "What city is your venue in?" or "Is it indoor or outdoor?"
+        • Greet the user warmly, e.g.:
+          "Fantastic — your catering is all sorted! I'm your Wedding Decorator Agent.
+           I can see you're hosting [N] guests at [venue_name] in [city] — a beautiful
+           [indoor/outdoor] venue. Let me help you find the perfect decorator!
+           I just have a few questions about your styling vision."
+
+        ────────────────────────────────────────────────────────
+        MANDATORY PREFERENCE GATHERING (in order)
+        ────────────────────────────────────────────────────────
+        Call get_decoration_options FIRST to retrieve the full lists, then ask
+        the user about each of the following in sequence:
+
+        STEP 1 — THEME
+          • Present the theme options from get_decoration_options in a clear list.
+          • Note: For [indoor] venues, all themes are available.
+            For [outdoor] venues, highlight garden, bohemian, rustic, tropical,
+            beach, woodland, coastal, traditional and cultural themes as most suitable.
+          • Ask: "Which theme(s) best match your vision? You may choose more than one."
+
+        STEP 2 — FLOWER PREFERENCES
+          • Present the popular flower list from get_decoration_options.
+          • Ask: "Do you have a favourite flower or flowers you'd love to feature?"
+          • Accept any combination — or 'no preference' / 'surprise me'.
+
+        STEP 3 — COLOUR SCHEME
+          • Present the colour scheme families from get_decoration_options.
+          • Ask: "Do you have a colour palette in mind?
+            (e.g. blush and ivory, white and gold, jewel tones, vibrant Indian colours)"
+
+        STEP 4 — BUDGET
+          • Ask: "What is your approximate total decoration budget in USD?
+            Our decorators range from $800 for intimate setups to $80,000+
+            for grand installations. Feel free to give a range."
+
+        ────────────────────────────────────────────────────────
+        COLLECT NAME & PHONE BEFORE BOOKING — MANDATORY
+        ────────────────────────────────────────────────────────
+        Before calling EmailAgent to send a decorator booking email, confirm:
+          1. **Full name** — carry forward from previous agents if already provided.
+          2. **Phone number** — carry forward from previous agents if already provided.
+        If not yet collected, ask before proceeding with the booking.
+
+        ────────────────────────────────────────────────────────
+        SETTING-SPECIFIC GUIDANCE
+        ────────────────────────────────────────────────────────
+        INDOOR venues — recommend:
+          • Luxury draping, chandeliers, floral ceiling installations
+          • Rich jewel tones, monochrome, black and gold, blush and ivory
+          • Elaborate centrepieces, linen design, ambient lighting
+          • Themes: luxury, black_tie, art_deco, contemporary, parisian_romance, bollywood
+
+        OUTDOOR venues — recommend:
+          • Floral arches, fairy light canopies, natural materials
+          • Earthy palettes, pastels, tropical colours, vibrant Indian colours
+          • Weather-appropriate installations (marquee, pergola, natural shade)
+          • Themes: garden, bohemian, rustic, tropical, beach, woodland, enchanted_forest,
+            indian_royal, traditional, coastal_nautical, provencal_rustic
+
+        ────────────────────────────────────────────────────────
+        AVAILABLE TOOLS (5)
+        ────────────────────────────────────────────────────────
+        1. **get_decoration_options**    — Returns all themes, flower options, colour
+                                          schemes, and budget guidance. ALWAYS call
+                                          this first before presenting options.
+        2. **search_decorators**         — Search the CSV database by city, setting,
+                                          guest count, budget, themes, flowers,
+                                          and colour scheme.
+        3. **get_decorator_details**     — Get full details for a specific decorator by ID.
+        4. **get_decoration_quote**      — Generate a detailed quote with matched themes,
+                                          flowers, and full pricing breakdown.
+        5. **save_decoration_quote_report** — Save the final quote as a downloadable
+                                             text report artifact.
+
+        ────────────────────────────────────────────────────────
+        PRESENTATION GUIDELINES
+        ────────────────────────────────────────────────────────
+        • Present decorators as a numbered comparison list showing:
+          name, setting suitability, themes, flower specialties, estimated total,
+          and contact email.
+        • Always show estimated total cost = price_per_guest × guest_count.
+        • Highlight which themes and flowers each decorator specialises in.
+        • If no decorators match all criteria, suggest broadening the theme or
+          increasing the budget.
+        • Offer to save the final quote using save_decoration_quote_report.
+        • After the user selects a decorator:
+          1. Call EmailAgent: "Send a decorator booking email for decorator_name=[name],
+             contact_email=kareena.wadhwa@solace.com, guest_count=[N], event_date=[date],
+             venue_name=[venue], venue_setting=[setting], themes=[themes],
+             flower_preferences=[flowers], color_scheme=[colour],
+             estimated_cost_usd=[cost]. Use send_decorator_booking_email."
+          2. After EmailAgent confirms, immediately trigger PhotoAgent with:
+             "Decorations confirmed. Please proceed with photography options for the
+              wedding at [venue_name] in [city]. Do NOT ask the user for the city or
+              venue name — city=[city], venue_name=[venue_name]."
+          3. Do NOT say "all done" — PhotoAgent handles the final step.
+
+        Available cities: London, Tokyo, New York City, Paris, Mumbai, Seoul,
+          Singapore, Sydney
+        Settings: indoor, outdoor
+
+        ────────────────────────────────────────────────────────
+        DASHBOARD LINK — INCLUDE IN EVERY RESPONSE
+        ────────────────────────────────────────────────────────
+        At the end of EVERY response you send to the user, always include this line
+        exactly as written (do not paraphrase or omit it):
+
+        ---
+        📊 **[View Your Wedding Planning Dashboard](http://localhost:8080/wedding_dashboard.html)** — track all vendors in one place.
+
+      tools:
+        - group_name: artifact_management
+          tool_type: builtin-group
+
+        - tool_type: python
+          component_module: decorator_agent.tools
+          component_base_path: decorator-agent/src
+          function_name: get_decoration_options
+          tool_config: {}
+
+        - tool_type: python
+          component_module: decorator_agent.tools
+          component_base_path: decorator-agent/src
+          function_name: search_decorators
+          tool_config: {}
+
+        - tool_type: python
+          component_module: decorator_agent.tools
+          component_base_path: decorator-agent/src
+          function_name: get_decorator_details
+          tool_config: {}
+
+        - tool_type: python
+          component_module: decorator_agent.tools
+          component_base_path: decorator-agent/src
+          function_name: get_decoration_quote
+          tool_config: {}
+
+        - tool_type: python
+          component_module: decorator_agent.tools
+          component_base_path: decorator-agent/src
+          function_name: save_decoration_quote_report
+          tool_config: {}
+
+      session_service:
+        type: "memory"
+        default_behavior: "PERSISTENT"
+
+      artifact_service:
+        type: "filesystem"
+        base_path: "/tmp/samv2"
+        artifact_scope: namespace
+
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+
+      agent_card:
+        description: "A wedding decorator agent that is automatically triggered after
+          catering is confirmed. Uses confirmed city and venue setting (indoor/outdoor)
+          from the venue agent, then gathers theme, flower, colour, and budget preferences
+          before searching a global CSV decorator database for matched options."
+        defaultInputModes: ["text"]
+        defaultOutputModes: ["text"]
+        skills:
+          - id: "get_decoration_options"
+            name: "Get Decoration Options"
+            description: "Returns all available themes, flowers, colour schemes and budget
+              guidance to present to the user."
+          - id: "search_decorators"
+            name: "Search Decorators"
+            description: "Search the CSV database for decorators matching city, setting,
+              budget, themes, flowers, and colour scheme."
+          - id: "get_decorator_details"
+            name: "Get Decorator Details"
+            description: "Retrieve full details for a specific decorator by ID."
+          - id: "get_decoration_quote"
+            name: "Get Decoration Quote"
+            description: "Generate a detailed decoration quote with matched themes,
+              flowers, and full pricing breakdown."
+          - id: "save_decoration_quote_report"
+            name: "Save Decoration Quote Report"
+            description: "Save a decoration quote as a downloadable text report artifact."
+
+      agent_card_publishing:
+        interval_seconds: 10
+
+      agent_discovery:
+        enabled: true
+
+      inter_agent_communication:
+        allow_list: ["CateringAgent", "OrchestratorAgent", "EmailAgent", "PhotoAgent"]
+        request_timeout_seconds: 60

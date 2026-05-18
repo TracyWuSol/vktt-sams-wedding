@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💍 Wedding Planning Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+    :root {
+      --gold:        #c9a84c;
+      --gold-light:  #f5e6bb;
+      --gold-dark:   #8a6c1e;
+      --blush:       #f4b8c1;
+      --blush-dark:  #d4748b;
+      --sage:        #7aab8a;
+      --sage-light:  #d4ead9;
+      --cream:       #faf6f0;
+      --card-bg:     #ffffff;
+      --text-main:   #3a2e2e;
+      --text-muted:  #8a7a7a;
+      --shadow:      0 4px 24px rgba(139, 90, 60, 0.10);
+      --radius:      18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text-main); min-height: 100vh; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 10% 15%, rgba(201,168,76,0.07) 0%, transparent 50%),
+                  radial-gradient(ellipse at 90% 85%, rgba(244,184,193,0.10) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Persistent Top Banner ─────────────────────────────────── */
+    .top-banner {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: linear-gradient(90deg, #3a2e2e, #5c3d3d, #3a2e2e);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      gap: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      flex-wrap: wrap;
+    }
+
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.9);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .banner-logo { font-size: 1.1rem; }
+
+    .banner-progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .banner-bar {
+      width: 120px;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .banner-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--gold), var(--blush));
+      transition: width 0.8s ease;
+    }
+
+    .banner-pct {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 0.82rem;
+      min-width: 30px;
+    }
+
+    .banner-status-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .banner-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.85);
+    }
+
+    .banner-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .share-btn {
+      background: rgba(201,168,76,0.25);
+      border: 1px solid rgba(201,168,76,0.5);
+      color: var(--gold);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+    }
+    .share-btn:hover { background: rgba(201,168,76,0.4); }
+
+    .live-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #5ec97a;
+      animation: pulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .live-label { font-size: 0.72rem; color: #5ec97a; font-weight: 600; }
+
+    /* ── Toast notification ────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      z-index: 9999;
+      background: #3a2e2e;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      border-left: 4px solid var(--gold);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      max-width: 300px;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    header {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 40px 24px 28px;
+      background: linear-gradient(135deg, #3a2e2e 0%, #5c3d3d 50%, #3a2e2e 100%);
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.18) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 50%, rgba(244,184,193,0.15) 0%, transparent 60%);
+    }
+
+    .header-petals { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+
+    .petal {
+      position: absolute; font-size: 1.4rem; opacity: 0.18;
+      animation: floatPetal linear infinite;
+    }
+
+    @keyframes floatPetal {
+      0%   { transform: translateY(-20px) rotate(0deg);   opacity: 0; }
+      10%  { opacity: 0.18; }
+      90%  { opacity: 0.18; }
+      100% { transform: translateY(110px) rotate(360deg); opacity: 0; }
+    }
+
+    .header-inner { position: relative; z-index: 1; }
+
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold-light); font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 6px 18px; border-radius: 100px; margin-bottom: 16px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700;
+      color: #fff; line-height: 1.2; margin-bottom: 6px;
+    }
+
+    header h1 span { color: var(--gold); }
+    header p { color: rgba(255,255,255,0.65); font-size: 0.95rem; font-weight: 300; }
+
+    /* ── Summary chips ────────────────────────────────────────────── */
+    .summary-row {
+      position: relative; z-index: 1;
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+      padding: 20px 24px 0; max-width: 1100px; margin: 0 auto;
+    }
+
+    .summary-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card-bg); border-radius: 100px;
+      padding: 8px 18px; box-shadow: var(--shadow);
+      font-size: 0.82rem; font-weight: 600; color: var(--text-main);
+    }
+
+    .chip-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Main ─────────────────────────────────────────────────────── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 28px 24px 80px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 600;
+      color: var(--text-main); margin: 0 0 18px 4px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .section-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--gold-light), transparent);
+    }
+
+    /* ── Stats ────────────────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px; margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--card-bg); border-radius: 14px;
+      box-shadow: var(--shadow); padding: 18px;
+      text-align: center; border-top: 4px solid var(--stat-color, var(--gold));
+    }
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700;
+      color: var(--stat-color, var(--gold)); line-height: 1; margin-bottom: 4px;
+    }
+
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── Cards ────────────────────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 18px; margin-bottom: 36px;
+    }
+
+    .task-card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative; border: 1.5px solid transparent;
+    }
+
+    .task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(139,90,60,0.15); }
+
+    .task-card.request-sent { border-color: rgba(201,168,76,0.35); }
+
+    .task-card.request-sent::before {
+      content: '✉️';
+      position: absolute; top: 10px; right: 12px;
+      font-size: 1rem;
+    }
+
+    .card-accent { height: 5px; background: linear-gradient(90deg, var(--accent-a), var(--accent-b)); }
+    .card-body { padding: 20px 20px 16px; }
+
+    .card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+
+    .card-icon-wrap {
+      width: 48px; height: 48px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    }
+
+    .card-meta { flex: 1; min-width: 0; }
+
+    .card-title {
+      font-family: 'Playfair Display', serif; font-size: 1rem;
+      font-weight: 600; color: var(--text-main); margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .card-vendor { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-vendor strong { color: var(--text-main); font-weight: 600; }
+
+    /* Status steps */
+    .status-steps { display: flex; align-items: center; margin-bottom: 14px; }
+
+    .step {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 5px; position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: ''; position: absolute;
+      top: 13px; left: calc(50% + 13px); right: calc(-50% + 13px);
+      height: 2px; background: #e8ddd2; transition: background 0.4s ease; z-index: 0;
+    }
+
+    .step.done:not(:last-child)::after { background: var(--step-color); }
+
+    .step-circle {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid #c8bcb0; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; color: #c8bcb0;
+      position: relative; z-index: 1; transition: all 0.4s ease;
+    }
+
+    .step.done .step-circle { border-color: var(--step-color); background: var(--step-color); color: #fff; }
+
+    .step-label {
+      font-size: 0.65rem; font-weight: 600; color: #c8bcb0;
+      letter-spacing: 0.04em; text-transform: uppercase; text-align: center;
+      transition: color 0.4s ease;
+    }
+
+    .step.done .step-label { color: var(--step-color); }
+
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 12px; border-top: 1px solid #f0eae0;
+    }
+
+    .card-city { font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+    .overall-badge {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 100px;
+    }
+
+    /* Request-only badge — new status */
+    .badge-requested { background: #fff3cd; color: #856404; }
+    .badge-emailed   { background: var(--gold-light); color: var(--gold-dark); }
+    .badge-chosen    { background: var(--sage-light); color: #3a7a50; }
+    .badge-pending   { background: #f0ebe5; color: #9a8a7a; }
+
+    /* ── Timeline ─────────────────────────────────────────────────── */
+    .timeline {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 24px 24px 18px; margin-bottom: 36px;
+    }
+
+    .timeline-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 18px; }
+
+    .timeline-items { list-style: none; }
+
+    .tl-item {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding-bottom: 16px; position: relative;
+    }
+
+    .tl-item:not(:last-child)::before {
+      content: ''; position: absolute; left: 15px; top: 30px;
+      bottom: 0; width: 2px;
+      background: linear-gradient(180deg, var(--tl-color, var(--gold-light)), transparent);
+    }
+
+    .tl-dot {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--tl-color, var(--gold-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; flex-shrink: 0; position: relative; z-index: 1;
+    }
+
+    .tl-content { flex: 1; padding-top: 4px; }
+    .tl-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; }
+    .tl-sub { font-size: 0.76rem; color: var(--text-muted); }
+
+    /* ── Notice box ──────────────────────────────────────────────── */
+    .notice-box {
+      background: #fff8e6; border: 1px solid #f0d070;
+      border-radius: 12px; padding: 14px 18px;
+      font-size: 0.83rem; color: #7a5f00;
+      margin-bottom: 28px; display: flex; gap: 10px; align-items: flex-start;
+    }
+
+    /* ── FAB ──────────────────────────────────────────────────────── */
+    .fab {
+      position: fixed; bottom: 28px; right: 28px; z-index: 100;
+      width: 54px; height: 54px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--blush-dark));
+      border: none; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+      font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease; color: #fff;
+    }
+    .fab:hover { transform: scale(1.1) rotate(10deg); box-shadow: 0 12px 32px rgba(201,168,76,0.5); }
+
+    /* ── Modal ────────────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(40,25,25,0.55); backdrop-filter: blur(4px);
+      z-index: 200; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card-bg); border-radius: 20px; padding: 28px;
+      width: min(460px, 94vw); box-shadow: 0 24px 80px rgba(40,25,25,0.25);
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 14px; }
+
+    .form-group label {
+      display: block; font-size: 0.78rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid #e8ddd2; border-radius: 9px;
+      font-family: 'Inter', sans-serif; font-size: 0.9rem;
+      color: var(--text-main); background: var(--cream); outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--gold); }
+
+    .status-checks { display: flex; gap: 10px; flex-wrap: wrap; }
+    .status-check { display: flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+    .status-check input { width: auto; accent-color: var(--gold); }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+    .btn {
+      flex: 1; padding: 11px; border-radius: 11px; border: none;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, var(--gold), var(--blush-dark)); color: #fff; }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary { background: #f0ebe5; color: var(--text-muted); }
+    .btn-secondary:hover { background: #e8e0d8; }
+
+    footer {
+      position: relative; z-index: 1; text-align: center;
+      padding: 20px 24px; color: var(--text-muted);
+      font-size: 0.78rem; border-top: 1px solid #ede4d8;
+    }
+
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .stats-row  { grid-template-columns: repeat(2, 1fr); }
+      .top-banner { padding: 8px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ PERSISTENT TOP BANNER ═══════════════════════════════════ -->
+<div class="top-banner">
+  <div class="banner-left">
+    <span class="banner-logo">💍</span>
+    <span>Wedding Planning with SAM</span>
+    <span class="live-dot"></span>
+    <span class="live-label">LIVE</span>
+  </div>
+  <div class="banner-progress-wrap">
+    <div class="banner-bar">
+      <div class="banner-bar-fill" id="bannerFill" style="width:0%"></div>
+    </div>
+    <span class="banner-pct" id="bannerPct">0%</span>
+  </div>
+  <div class="banner-status-pills" id="bannerPills"></div>
+  <div class="banner-right">
+    <button class="share-btn" onclick="copyDashLink()">🔗 Copy Link</button>
+  </div>
+</div>
+
+<!-- ═══ FLOATING PETALS ═════════════════════════════════════════ -->
+<div class="header-petals" id="petals"></div>
+
+<!-- ═══ HEADER ══════════════════════════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="header-badge">💍 Wedding Planning Dashboard</div>
+    <h1>Your <span>Wedding</span> Progress</h1>
+    <p>Booking requests sent — awaiting vendor confirmations</p>
+  </div>
+</header>
+
+<!-- ═══ SUMMARY CHIPS ═══════════════════════════════════════════ -->
+<div class="summary-row" id="summaryChips"></div>
+
+<!-- ═══ MAIN ════════════════════════════════════════════════════ -->
+<main>
+
+  <!-- Notice box -->
+  <div class="notice-box">
+    ⚠️ <div>
+      <strong>Booking Requests Sent — Not Yet Confirmed.</strong>
+      Each vendor has received a <em>request to book</em>. Your booking is not confirmed
+      until the vendor responds and both parties agree on terms and deposit.
+      Status updates automatically when SAM sends a new request.
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow"></div>
+
+  <!-- Cards -->
+  <div class="section-title">💐 Vendor Bookings</div>
+  <div class="cards-grid" id="cardsGrid"></div>
+
+  <!-- Timeline -->
+  <div class="section-title">🗓️ Activity Timeline</div>
+  <div class="timeline">
+    <ul class="timeline-items" id="timeline"></ul>
+  </div>
+
+</main>
+
+<footer>Made with 💛 by Wedding Planning with SAM &nbsp;·&nbsp; Click <strong>+</strong> to add a task &nbsp;·&nbsp; Updates automatically when SAM sends a booking request</footer>
+
+<!-- ═══ FAB ══════════════════════════════════════════════════════ -->
+<button class="fab" id="openModal" title="Add new task">＋</button>
+
+<!-- ═══ MODAL ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>✨ Add New Vendor Task</h2>
+    <div class="form-group">
+      <label>Task Name</label>
+      <input type="text" id="fName" placeholder="e.g. Hair & Makeup" />
+    </div>
+    <div class="form-group">
+      <label>Icon (emoji)</label>
+      <input type="text" id="fIcon" placeholder="e.g. 💄" maxlength="4" />
+    </div>
+    <div class="form-group">
+      <label>Vendor Name</label>
+      <input type="text" id="fVendor" placeholder="e.g. Glamour Studio" />
+    </div>
+    <div class="form-group">
+      <label>City</label>
+      <input type="text" id="fCity" placeholder="e.g. London" />
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="fCategory">
+        <option value="venue">Venue</option>
+        <option value="catering">Catering</option>
+        <option value="decoration">Decoration</option>
+        <option value="photography">Photography</option>
+        <option value="other" selected>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <div class="status-checks">
+        <label class="status-check"><input type="checkbox" id="fChosen" /> Chosen</label>
+        <label class="status-check"><input type="checkbox" id="fEmailed" /> Request Sent</label>
+        <label class="status-check"><input type="checkbox" id="fBooked" /> Confirmed</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="closeModal">Cancel</button>
+      <button class="btn btn-primary" id="saveTask">Add Task 💐</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<script>
+/* ═══ DEFAULT TASKS ══════════════════════════════════════════════ */
+const DEFAULT_TASKS = [
+  { id:"venue",       name:"Wedding Venue",         icon:"🏛️", vendor:null, city:null, category:"venue",       chosen:false, emailed:false, booked:false, accentA:"#c9a84c", accentB:"#f5d78e" },
+  { id:"catering",    name:"Catering",               icon:"🍽️", vendor:null, city:null, category:"catering",    chosen:false, emailed:false, booked:false, accentA:"#e07b8a", accentB:"#f4b8c1" },
+  { id:"decoration",  name:"Decoration",             icon:"🌸", vendor:null, city:null, category:"decoration",  chosen:false, emailed:false, booked:false, accentA:"#7aab8a", accentB:"#b2d9be" },
+  { id:"photography", name:"Photography & Video",    icon:"📸", vendor:null, city:null, category:"photography", chosen:false, emailed:false, booked:false, accentA:"#9b7fd4", accentB:"#c9b8f0" },
+];
+
+const ACCENT_PALETTE = [
+  ["#e07b54","#f4b89a"],["#54a0c9","#a8d4f0"],["#c95480","#f0a8c0"],
+  ["#7aab54","#b8d998"],["#c9a854","#f0d8a0"],["#8a54c9","#c0a8f0"],
+];
+let accentIdx = 0;
+
+const CAT_ICON = { venue:"🏛️", catering:"🍽️", decoration:"🌸", photography:"📸", other:"💼" };
+
+const STEP_COLOURS = { chosen:"#7aab8a", emailed:"#c9a84c", booked:"#d4748b" };
+
+/* ═══ STATE ══════════════════════════════════════════════════════ */
+function loadTasks() {
+  try {
+    const s = localStorage.getItem("weddingTasksV2");
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_TASKS));
+}
+
+function saveTasks(tasks) {
+  try { localStorage.setItem("weddingTasksV2", JSON.stringify(tasks)); } catch(e) {}
+}
+
+let tasks = loadTasks();
+
+/* ═══ TOAST ══════════════════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+/* ═══ COPY LINK ══════════════════════════════════════════════════ */
+function copyDashLink() {
+  try {
+    navigator.clipboard.writeText(window.location.href);
+    showToast("📋 Dashboard link copied to clipboard!");
+  } catch(e) {
+    showToast("🔗 " + window.location.href);
+  }
+}
+
+/* ═══ STATUS HELPERS ═════════════════════════════════════════════ */
+function overallStatus(t) {
+  if (t.booked)  return "booked";
+  if (t.emailed) return "requested";   // "emailed" = request sent
+  if (t.chosen)  return "chosen";
+  return "pending";
+}
+
+function overallLabel(s) {
+  return {
+    booked:    "Confirmed ✅",
+    requested: "Request Sent ✉️",
+    chosen:    "Chosen ✓",
+    pending:   "Pending…",
+  }[s];
+}
+
+function badgeClass(s) {
+  return {
+    booked:    "badge-emailed",   // use gold for confirmed
+    requested: "badge-requested",
+    chosen:    "badge-chosen",
+    pending:   "badge-pending",
+  }[s];
+}
+
+/* ═══ RENDER ═════════════════════════════════════════════════════ */
+function renderAll() {
+  renderStats();
+  renderSummaryChips();
+  renderCards();
+  renderTimeline();
+  renderBanner();
+}
+
+function renderBanner() {
+  const total   = tasks.length * 2;  // chosen + emailed
+  const done    = tasks.reduce((n,t)=>(n+(t.chosen?1:0)+(t.emailed?1:0)),0);
+  const pct     = total>0 ? Math.round(done/total*100) : 0;
+  document.getElementById("bannerFill").style.width = pct + "%";
+  document.getElementById("bannerPct").textContent  = pct + "%";
+
+  const counts = {
+    "Chosen":    tasks.filter(t=>t.chosen).length,
+    "Requested": tasks.filter(t=>t.emailed).length,
+    "Confirmed": tasks.filter(t=>t.booked).length,
+  };
+  document.getElementById("bannerPills").innerHTML = Object.entries(counts)
+    .map(([k,v]) => `<span class="banner-pill">${v} ${k}</span>`).join("");
+}
+
+function renderStats() {
+  const total    = tasks.length;
+  const chosen   = tasks.filter(t=>t.chosen).length;
+  const requested= tasks.filter(t=>t.emailed).length;
+  const confirmed= tasks.filter(t=>t.booked).length;
+
+  const stats = [
+    {num:total,     label:"Total Tasks",       color:"#9b7fd4"},
+    {num:chosen,    label:"Vendors Chosen",    color:"#7aab8a"},
+    {num:requested, label:"Requests Sent",     color:"#c9a84c"},
+    {num:confirmed, label:"Confirmed",         color:"#d4748b"},
+  ];
+
+  document.getElementById("statsRow").innerHTML = stats.map(s=>`
+    <div class="stat-card" style="--stat-color:${s.color}">
+      <div class="stat-number">${s.num}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join("");
+}
+
+function renderSummaryChips() {
+  const chips = [
+    {label:"Chosen",    color:"#7aab8a", count:tasks.filter(t=>t.chosen).length},
+    {label:"Requested", color:"#c9a84c", count:tasks.filter(t=>t.emailed).length},
+    {label:"Confirmed", color:"#d4748b", count:tasks.filter(t=>t.booked).length},
+    {label:"Pending",   color:"#c8bcb0", count:tasks.filter(t=>!t.chosen).length},
+  ];
+  document.getElementById("summaryChips").innerHTML = chips.map(c=>`
+    <div class="summary-chip">
+      <span class="chip-dot" style="background:${c.color}"></span>
+      ${c.count} ${c.label}
+    </div>`).join("");
+}
+
+function renderCards() {
+  document.getElementById("cardsGrid").innerHTML = tasks.map(t => {
+    const status  = overallStatus(t);
+    const requestSent = t.emailed;
+    const aA = t.accentA||"#c9a84c";
+    const aB = t.accentB||"#f5d78e";
+
+    const steps = [
+      {key:"chosen",  icon:"✓", label:"Chosen"},
+      {key:"emailed", icon:"✉", label:"Request Sent"},
+      {key:"booked",  icon:"✅", label:"Confirmed"},
+    ];
+
+    const stepsHtml = steps.map((s,si)=>{
+      const done  = t[s.key];
+      const color = STEP_COLOURS[s.key];
+      return `<div class="step ${done?"done":""}" style="--step-color:${color}">
+        <div class="step-circle">${done?s.icon:(si+1)}</div>
+        <div class="step-label">${s.label}</div>
+      </div>`;
+    }).join("");
+
+    return `
+      <div class="task-card ${requestSent?"request-sent":""}"
+           style="--accent-a:${aA};--accent-b:${aB}">
+        <div class="card-accent"></div>
+        <div class="card-body">
+          <div class="card-header">
+            <div class="card-icon-wrap">${t.icon||CAT_ICON[t.category]||"💼"}</div>
+            <div class="card-meta">
+              <div class="card-title">${t.name}</div>
+              <div class="card-vendor">
+                ${t.vendor
+                  ? `<strong>${t.vendor}</strong>`
+                  : `<span style="color:#c8bcb0">No vendor selected yet</span>`}
+              </div>
+            </div>
+          </div>
+          <div class="status-steps">${stepsHtml}</div>
+          <div class="card-footer">
+            <span class="card-city">
+              ${t.city?`📍 ${t.city}`:`<span style="color:#c8bcb0">Location TBD</span>`}
+            </span>
+            <span class="overall-badge ${badgeClass(status)}">${overallLabel(status)}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderTimeline() {
+  const active = tasks.filter(t=>t.emailed||t.chosen||t.booked)
+    .sort((a,b)=>{
+      const sc=t=>(t.booked?4:0)+(t.emailed?2:0)+(t.chosen?1:0);
+      return sc(b)-sc(a);
+    });
+
+  const items = active.length>0 ? active : tasks.slice(0,3);
+
+  const cols = {booked:"#f4b8c1", requested:"#f5e6bb", chosen:"#d4ead9", pending:"#f0ebe5"};
+  const icos = {booked:"✅", requested:"✉️", chosen:"✓", pending:"⏳"};
+
+  document.getElementById("timeline").innerHTML = items.map(t=>{
+    const s   = overallStatus(t);
+    const col = cols[s]||"#f0ebe5";
+    const ico = icos[s]||"⏳";
+    const sub = t.vendor
+      ? `${t.vendor}${t.city?` · ${t.city}`:""}`
+      : "Vendor not yet selected";
+    return `
+      <li class="tl-item" style="--tl-color:${col}">
+        <div class="tl-dot" style="background:${col}">${ico}</div>
+        <div class="tl-content">
+          <div class="tl-title">${t.name}</div>
+          <div class="tl-sub">${sub} · ${overallLabel(s)}</div>
+        </div>
+      </li>`;
+  }).join("");
+}
+
+/* ═══ PETALS ═════════════════════════════════════════════════════ */
+function spawnPetals() {
+  const c = document.getElementById("petals");
+  const emojis = ["🌸","🌷","💮","🌺","💐","✨","🌹","🪷"];
+  for (let i=0;i<14;i++) {
+    const el = document.createElement("span");
+    el.className = "petal";
+    el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left = Math.random()*100+"%";
+    el.style.top  = "-30px";
+    el.style.fontSize = (1+Math.random())+"rem";
+    el.style.animationDuration = (6+Math.random()*8)+"s";
+    el.style.animationDelay   = (Math.random()*10)+"s";
+    c.appendChild(el);
+  }
+}
+
+/* ═══ MODAL ══════════════════════════════════════════════════════ */
+const overlay = document.getElementById("modalOverlay");
+
+document.getElementById("openModal").addEventListener("click",()=> overlay.classList.add("open"));
+document.getElementById("closeModal").addEventListener("click",()=>{ overlay.classList.remove("open"); clearForm(); });
+overlay.addEventListener("click",e=>{ if(e.target===overlay){overlay.classList.remove("open");clearForm();} });
+
+function clearForm() {
+  ["fName","fIcon","fVendor","fCity"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("fCategory").value="other";
+  ["fChosen","fEmailed","fBooked"].forEach(id=>document.getElementById(id).checked=false);
+}
+
+document.getElementById("saveTask").addEventListener("click",()=>{
+  const name = document.getElementById("fName").value.trim();
+  if(!name){ document.getElementById("fName").focus(); return; }
+  const cat  = document.getElementById("fCategory").value;
+  const icon = document.getElementById("fIcon").value.trim() || CAT_ICON[cat]||"💼";
+  const accent = ACCENT_PALETTE[accentIdx%ACCENT_PALETTE.length]; accentIdx++;
+  tasks.push({
+    id: "task_"+Date.now(),
+    name, icon,
+    vendor: document.getElementById("fVendor").value.trim()||null,
+    city:   document.getElementById("fCity").value.trim()||null,
+    category: cat,
+    chosen:  document.getElementById("fChosen").checked,
+    emailed: document.getElementById("fEmailed").checked,
+    booked:  document.getElementById("fBooked").checked,
+    accentA: accent[0], accentB: accent[1],
+  });
+  saveTasks(tasks); renderAll();
+  overlay.classList.remove("open"); clearForm();
+  showToast("✨ New task added to your dashboard!");
+});
+
+/* ═══ SAM INTEGRATION API ════════════════════════════════════════
+
+  window.samUpdateTask({ id, vendor, city, chosen, emailed, booked })
+  window.samAddTask({ name, icon, vendor, city, category, chosen, emailed, booked })
+
+  Or via postMessage:
+  window.postMessage(JSON.stringify({
+    type: "samUpdateTask",
+    payload: { id:"venue", vendor:"The Savoy", city:"London", chosen:true, emailed:true, booked:false }
+  }), "*");
+
+   ═══════════════════════════════════════════════════════════════ */
+
+window.samUpdateTask = function(update) {
+  const task = tasks.find(t=>t.id===update.id);
+  if (!task) {
+    console.warn("samUpdateTask: id not found:", update.id);
+    return;
+  }
+  const prevEmailed = task.emailed;
+  Object.assign(task, update);
+  saveTasks(tasks);
+  renderAll();
+  if (!prevEmailed && task.emailed) {
+    showToast(`✉️ Booking request sent for ${task.name}${task.vendor ? ": " + task.vendor : ""}!`);
+  } else if (task.booked) {
+    showToast(`✅ ${task.name} confirmed${task.vendor ? ": " + task.vendor : ""}!`);
+  } else {
+    showToast(`🔄 ${task.name} status updated on dashboard!`);
+  }
+};
+
+window.samAddTask = function(data) {
+  const accent = ACCENT_PALETTE[accentIdx%ACCENT_PALETTE.length]; accentIdx++;
+  tasks.push({ id:"task_"+Date.now(), accentA:accent[0], accentB:accent[1],
+    chosen:false, emailed:false, booked:false, ...data });
+  saveTasks(tasks); renderAll();
+  showToast(`✨ New task added: ${data.name}`);
+};
+
+window.addEventListener("message", e=>{
+  try {
+    const msg = typeof e.data==="string" ? JSON.parse(e.data) : e.data;
+    if (msg.type==="samUpdateTask") window.samUpdateTask(msg.payload);
+    if (msg.type==="samAddTask")    window.samAddTask(msg.payload);
+  } catch(_) {}
+});
+
+/* ═══ AUTO-REFRESH — polls localStorage every 3 seconds ══════════
+   SAM tools write to 'weddingTasksV2' in localStorage via samUpdateTask.
+   This poller detects changes and re-renders without needing postMessage.
+   ════════════════════════════════════════════════════════════════ */
+let _lastSnapshot = "";
+
+function _pollForUpdates() {
+  try {
+    const raw = localStorage.getItem("weddingTasksV2");
+    if (raw && raw !== _lastSnapshot) {
+      _lastSnapshot = raw;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        tasks = parsed;
+        renderAll();
+        showToast("🔄 Dashboard updated!");
+      }
+    }
+  } catch(e) {}
+}
+
+// Poll every 3 seconds for localStorage changes from SAM tools
+setInterval(_pollForUpdates, 3000);
+
+/* ═══ BOOT ═══════════════════════════════════════════════════════ */
+spawnPetals();
+renderAll();
+</script>
+</body>
+</html>

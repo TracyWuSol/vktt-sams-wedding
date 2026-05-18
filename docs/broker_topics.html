@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>broker_topics</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="solace-agent-mesh-broker-topics-payload-reference">Solace Agent
+Mesh — Broker Topics &amp; Payload Reference</h1>
+<p>This document catalogues every Solace topic the Agent Mesh (SAM) uses
+at runtime, the payload shape on each topic, and who publishes /
+subscribes to it.</p>
+<blockquote>
+<p>All topic patterns are derived directly from
+<code>solace_agent_mesh/common/a2a/protocol.py</code> (v1.20.4 — the
+version pinned in this repo’s <code>requirements.txt</code>). Concrete
+examples use this project’s namespace <code>default_namespace/</code>
+(from <code>.env</code>) and the <code>WeddingVenueAgent</code> /
+<code>CateringAgent</code> / <code>webui_gateway</code> names from
+<code>configs/</code>.</p>
+</blockquote>
+<hr />
+<h2 id="conventions">0. Conventions</h2>
+<h3 id="namespace-and-base-topic">Namespace and base topic</h3>
+<p>Every topic is rooted at the SAM namespace, then the A2A protocol
+prefix:</p>
+<pre><code>{namespace}/a2a/v1/...</code></pre>
+<p>For this project:</p>
+<pre><code>NAMESPACE=default_namespace/      →  base = default_namespace/a2a/v1</code></pre>
+<p>(<code>namespace.rstrip('/')</code> is applied — trailing slash on
+<code>NAMESPACE</code> is harmless.)</p>
+<h3 id="wildcards">Wildcards</h3>
+<p>Solace topic wildcards are used in subscriptions, not publishes:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Wildcard</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*</code></td>
+<td>matches exactly one topic level</td>
+</tr>
+<tr>
+<td><code>&gt;</code></td>
+<td>matches one <strong>or more</strong> trailing levels (only allowed
+at the end)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="two-address-families">Two address families</h3>
+<p>SAM uses two distinct topic trees, each with its own purpose:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tree</th>
+<th>Purpose</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{namespace}/a2a/v1/...</code></td>
+<td>The <strong>A2A protocol</strong> — request/response, status
+streaming, discovery, trust</td>
+<td><code>.../agent/request/...</code>,
+<code>.../discovery/agentcards</code></td>
+</tr>
+<tr>
+<td><code>{namespace}/sam/...</code></td>
+<td><strong>SAM system events</strong> — broker-side
+lifecycle/coordination events that aren’t A2A messages</td>
+<td><code>.../sam/events/session/deleted</code>,
+<code>.../sam/v1/feedback/submit</code></td>
+</tr>
+</tbody>
+</table>
+<p>There is also one legacy/utility topic outside both trees:
+<code>{namespace}/a2a/events/agent/deregistered</code> (note: no
+<code>/v1/</code>).</p>
+<hr />
+<h2 id="topic-catalogue">1. Topic catalogue</h2>
+<h3 id="discovery-agent-cards">1.1 Discovery — agent cards</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/discovery/agentcards</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/discovery/agentcards</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>every agent app (e.g. <code>WeddingVenueAgent</code>,
+<code>CateringAgent</code>, <code>OrchestratorAgent</code>)</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>every agent (to learn its peers), every gateway, the Platform
+service</td>
+</tr>
+<tr>
+<td><strong>Cadence</strong></td>
+<td><code>agent_card_publishing.interval_seconds</code> in each agent
+YAML — <code>10s</code> in this project</td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>An agent advertises <em>itself</em>: name, description, skills,
+supported input/output modes, capabilities. Receivers build their
+peer-agent registry from these.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload — <code>AgentCard</code> (A2A v0.3.0)</strong></p>
+<pre class="jsonc"><code>{
+  &quot;name&quot;: &quot;WeddingVenueAgent&quot;,
+  &quot;description&quot;: &quot;A specialized agent for finding available wedding venues...&quot;,
+  &quot;protocol_version&quot;: &quot;0.3.0&quot;,
+  &quot;preferred_transport&quot;: &quot;JSONRPC&quot;,
+  &quot;capabilities&quot;: { /* AgentCapabilities — streaming, push-notifications, etc. */ },
+  &quot;default_input_modes&quot;:  [&quot;text&quot;],
+  &quot;default_output_modes&quot;: [&quot;text&quot;],
+  &quot;skills&quot;: [
+    { &quot;id&quot;: &quot;search_venues&quot;,            &quot;name&quot;: &quot;Search Venues&quot;,            &quot;description&quot;: &quot;...&quot;, &quot;tags&quot;: [], &quot;examples&quot;: [] },
+    { &quot;id&quot;: &quot;get_venue_details&quot;,        &quot;name&quot;: &quot;Get Venue Details&quot;,        &quot;description&quot;: &quot;...&quot;, &quot;tags&quot;: [], &quot;examples&quot;: [] },
+    { &quot;id&quot;: &quot;check_venue_availability&quot;, &quot;name&quot;: &quot;Check Venue Availability&quot;, &quot;description&quot;: &quot;...&quot;, &quot;tags&quot;: [], &quot;examples&quot;: [] },
+    { &quot;id&quot;: &quot;get_venue_quote&quot;,          &quot;name&quot;: &quot;Get Venue Quote&quot;,          &quot;description&quot;: &quot;...&quot;, &quot;tags&quot;: [], &quot;examples&quot;: [] },
+    { &quot;id&quot;: &quot;save_venue_search_report&quot;, &quot;name&quot;: &quot;Save Venue Search Report&quot;, &quot;description&quot;: &quot;...&quot;, &quot;tags&quot;: [], &quot;examples&quot;: [] }
+  ]
+  // ... documentation_url, icon_url, provider, security, security_schemes, signatures (optional)
+}</code></pre>
+<p>Full schema: <code>a2a.types.AgentCard</code> (Pydantic) — see
+<code>.venv/lib/python3.13/site-packages/a2a/types.py:1723</code>.</p>
+<hr />
+<h3 id="discovery-gateway-cards">1.2 Discovery — gateway cards</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/discovery/gatewaycards</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/discovery/gatewaycards</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>every gateway (e.g. the WebUI gateway in
+<code>configs/gateways/webui.yaml</code>)</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>Platform service, other gateways</td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Gateways advertise themselves for platform monitoring and deployment
+tracking. The payload is an <code>AgentCard</code> with a gateway
+extension (see <code>BaseGatewayComponent._build_gateway_card</code>,
+line ~2459).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="discovery-wildcard-subscription">1.3 Discovery — wildcard
+subscription</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Subscription</strong></td>
+<td><code>{namespace}/a2a/v1/discovery/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/discovery/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Used by</strong></td>
+<td>Platform service (<code>configs/services/platform.yaml</code>) —
+receives both agent and gateway cards through one subscription.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="agent-request-delegation">1.4 Agent request (delegation)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/agent/request/{agent_name}</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/agent/request/WeddingVenueAgent</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>the OrchestratorAgent (first hop) <strong>or</strong> any peer agent
+calling another via <code>inter_agent_communication</code></td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>the target agent (it subscribes to its own request topic)</td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Send a JSON-RPC <code>message/send</code> or
+<code>message/stream</code> request <em>into</em> a specific agent. Used
+both for the orchestrator’s first delegation and for the automatic
+vendor-chain handoffs (Venue → Catering → Decorator → Photo).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload — A2A JSON-RPC request envelope</strong></p>
+<pre class="jsonc"><code>{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: &quot;req-7c41a8...&quot;,            // request id, used to correlate responses
+  &quot;method&quot;: &quot;message/send&quot;,         // or &quot;message/stream&quot; for SSE-like streaming
+  &quot;params&quot;: {
+    &quot;message&quot;: {
+      &quot;role&quot;: &quot;user&quot;,               // user | agent
+      &quot;parts&quot;: [
+        { &quot;kind&quot;: &quot;text&quot;, &quot;text&quot;: &quot;A venue has been confirmed for 120 guests...&quot; }
+        // | DataPart  { &quot;kind&quot;: &quot;data&quot;,  &quot;data&quot;: { ... } }
+        // | FilePart  { &quot;kind&quot;: &quot;file&quot;,  &quot;file&quot;: { &quot;name&quot;: &quot;...&quot;, &quot;mime_type&quot;: &quot;...&quot;, &quot;bytes&quot;: &quot;...&quot; | &quot;uri&quot;: &quot;...&quot; } }
+      ],
+      &quot;task_id&quot;:    &quot;task-0a4...&quot;,   // present when continuing a task
+      &quot;context_id&quot;: &quot;ctx-12...&quot;,     // groups related tasks (e.g. a wedding-planning session)
+      &quot;metadata&quot;:   { /* arbitrary */ }
+    }
+    // Optional: &quot;configuration&quot;: { ... } for streaming/push-notification options
+  }
+}</code></pre>
+<p>Supported methods (from <code>a2a.types</code>):</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>message/send</code></td>
+<td>Non-streaming send</td>
+</tr>
+<tr>
+<td><code>message/stream</code></td>
+<td>Streaming send (status updates flow back via 1.5/1.6)</td>
+</tr>
+<tr>
+<td><code>tasks/get</code></td>
+<td>Fetch the current state of a task by ID</td>
+</tr>
+<tr>
+<td><code>tasks/cancel</code></td>
+<td>Cancel an in-flight task</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="agent-peer-status-sub-task-progress">1.5 Agent → peer status
+(sub-task progress)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/agent/status/{delegating_agent_name}/{sub_task_id}</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/agent/status/WeddingVenueAgent/task-0a4...</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>the agent <strong>executing</strong> a sub-task
+(e.g. <code>CateringAgent</code> working on a request from
+<code>WeddingVenueAgent</code>)</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>the <strong>delegating</strong> agent
+(e.g. <code>WeddingVenueAgent</code>) via the subscription pattern
+below</td>
+</tr>
+<tr>
+<td><strong>Subscription pattern</strong></td>
+<td><code>{namespace}/a2a/v1/agent/status/{self_agent_name}/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Stream incremental progress (<code>TaskStatusUpdateEvent</code>)
+back to the agent that delegated. Also carries SAM “signal” data parts:
+tool-invocation-start, tool-result, llm-invocation,
+agent-progress-update, artifact-creation-progress.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload — <code>TaskStatusUpdateEvent</code> wrapped in
+JSON-RPC</strong></p>
+<pre class="jsonc"><code>{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: &quot;req-7c41a8...&quot;,
+  &quot;result&quot;: {
+    &quot;kind&quot;:       &quot;status-update&quot;,
+    &quot;task_id&quot;:    &quot;task-0a4...&quot;,
+    &quot;context_id&quot;: &quot;ctx-12...&quot;,
+    &quot;status&quot;: {
+      &quot;state&quot;:     &quot;working&quot;,        // submitted|working|input-required|completed|failed|canceled|...
+      &quot;timestamp&quot;: &quot;2026-09-14T10:42:11.022Z&quot;,
+      &quot;message&quot;: {
+        &quot;role&quot;: &quot;agent&quot;,
+        &quot;parts&quot;: [
+          { &quot;kind&quot;: &quot;data&quot;, &quot;data&quot;: {
+              &quot;type&quot;: &quot;agent_progress_update&quot;,
+              &quot;status_text&quot;: &quot;Searching caterers in London...&quot;
+          }}
+        ]
+      }
+    },
+    &quot;is_final&quot;:   false,             // true means this status is the last on this topic
+    &quot;metadata&quot;:   { &quot;agent_name&quot;: &quot;CateringAgent&quot; }
+  }
+}</code></pre>
+<p>The <code>data</code> part inside the message is a SAM
+<strong>signal</strong> — one of the schemas in § 2. Final responses
+come over the <em>response</em> topic (next section), not status.</p>
+<hr />
+<h3 id="agent-peer-response-final-sub-task-result">1.6 Agent → peer
+response (final sub-task result)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/agent/response/{delegating_agent_name}/{sub_task_id}</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/agent/response/WeddingVenueAgent/task-0a4...</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>the agent that finished a sub-task</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>the delegating agent via
+<code>.../agent/response/{self_agent_name}/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Single-shot final response (success or error) for a sub-task. Closes
+out a delegation started over topic 1.4.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload — <code>Task</code> or
+<code>JSONRPCErrorResponse</code></strong></p>
+<pre class="jsonc"><code>{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: &quot;req-7c41a8...&quot;,
+  &quot;result&quot;: {
+    &quot;kind&quot;:       &quot;task&quot;,
+    &quot;id&quot;:         &quot;task-0a4...&quot;,
+    &quot;context_id&quot;: &quot;ctx-12...&quot;,
+    &quot;status&quot;: {
+      &quot;state&quot;: &quot;completed&quot;,
+      &quot;timestamp&quot;: &quot;2026-09-14T10:43:55Z&quot;,
+      &quot;message&quot;: { &quot;role&quot;: &quot;agent&quot;, &quot;parts&quot;: [
+        { &quot;kind&quot;: &quot;text&quot;, &quot;text&quot;: &quot;Found 4 caterers in London. Top match: Bombay Brasserie...&quot; }
+      ]}
+    },
+    &quot;artifacts&quot;: [
+      {
+        &quot;artifact_id&quot;: &quot;catering_quote_v1&quot;,
+        &quot;name&quot;:        &quot;catering_quote.txt&quot;,
+        &quot;parts&quot;:       [ /* TextPart | DataPart | FilePart */ ],
+        &quot;metadata&quot;:    { &quot;uri&quot;: &quot;artifact://catering_quote.txt?version=1&quot; }
+      }
+    ],
+    &quot;history&quot;:    [ /* prior messages, if requested */ ],
+    &quot;metadata&quot;:   { &quot;agent_name&quot;: &quot;CateringAgent&quot; }
+  }
+}</code></pre>
+<p>Errors arrive as <code>JSONRPCErrorResponse</code> with
+<code>error.code</code>/<code>error.message</code>
+(<code>InternalError</code>, <code>InvalidRequestError</code>,
+etc.).</p>
+<hr />
+<h3 id="agent-gateway-status-user-facing-progress">1.7 Agent → gateway
+status (user-facing progress)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/gateway/status/{gateway_id}/{task_id}</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/gateway/status/webui-7f3a/task-0a4...</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>the top-level agent handling the user’s turn (typically the
+OrchestratorAgent — or whichever agent the gateway delegated to)</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>the gateway that originated the request, via
+<code>.../gateway/status/{self_gateway_id}/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Streams <code>TaskStatusUpdateEvent</code> and
+<code>TaskArtifactUpdateEvent</code> toward the gateway so it can
+forward them to the browser (SSE). This is what powers the live
+“Searching venues…” indicator and artifact previews in the WebUI.</td>
+</tr>
+</tbody>
+</table>
+<p>Payload shape is identical to <strong>1.5</strong>, plus also
+<code>TaskArtifactUpdateEvent</code>:</p>
+<pre class="jsonc"><code>{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: &quot;req-...&quot;,
+  &quot;result&quot;: {
+    &quot;kind&quot;:       &quot;artifact-update&quot;,
+    &quot;task_id&quot;:    &quot;task-0a4...&quot;,
+    &quot;context_id&quot;: &quot;ctx-12...&quot;,
+    &quot;artifact&quot;: { /* Artifact — same shape as above */ },
+    &quot;append&quot;:      false,            // true to append parts to an existing artifact
+    &quot;last_chunk&quot;:  true              // signals end of streamed artifact creation
+  }
+}</code></pre>
+<hr />
+<h3 id="agent-gateway-response-final-response-to-user">1.8 Agent →
+gateway response (final response to user)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/gateway/response/{gateway_id}/{task_id}</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/gateway/response/webui-7f3a/task-0a4...</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>the agent that completed the user-visible task</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>the originating gateway via
+<code>.../gateway/response/{self_gateway_id}/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Single-shot terminal response back to the gateway — same
+<code>Task</code> payload as <strong>1.6</strong> but routed to a
+gateway instead of a peer agent.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="direct-to-client-variants-clients-without-a-gateway">1.9
+Direct-to-client variants (clients without a gateway)</h3>
+<p>When SAM is used without a gateway (e.g. a CLI or SDK client
+subscribes directly to the broker), agents publish on
+<strong>client</strong> topics instead of gateway ones.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{namespace}/a2a/v1/client/response/{client_id}</code></td>
+<td>Final response to a specific client</td>
+</tr>
+<tr>
+<td><code>{namespace}/a2a/v1/client/status/{client_id}/{task_id}</code></td>
+<td>Streaming status to a specific client + task</td>
+</tr>
+<tr>
+<td><code>{namespace}/a2a/v1/client/status/{client_id}/&gt;</code></td>
+<td>Subscription pattern a client uses</td>
+</tr>
+</tbody>
+</table>
+<p>Payloads are identical to the gateway/peer variants — only the
+routing differs.</p>
+<hr />
+<h3 id="trust-cards-security">1.10 Trust cards (security)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/v1/trust/{component_type}/{component_id}</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/v1/trust/agent/wedding-venue-agent-app</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>every agent and gateway, on startup and periodically</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>components that verify peers — typically the Platform service and
+any agent enabling trust checks</td>
+</tr>
+<tr>
+<td><strong>Subscription pattern</strong></td>
+<td><code>{namespace}/a2a/v1/trust/*/*</code> (all) or
+<code>{namespace}/a2a/v1/trust/{component_type}/*</code> (filtered)</td>
+</tr>
+<tr>
+<td><strong>Critical invariant</strong></td>
+<td><code>component_id</code> <strong>must equal the broker
+client-username</strong> the component authenticates with —
+i.e. <code>broker_username</code> in YAML. Using a different value (like
+<code>agent_name</code>) breaks the trust model.</td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Lets peers cryptographically verify that the agent publishing on a
+topic is who its agent-card claims to be.</td>
+</tr>
+</tbody>
+</table>
+<p>Payload is a signed trust-card document (component identity +
+signature + public key references); see
+<code>get_trust_card_topic</code> docstring at
+<code>common/a2a/protocol.py:218</code>.</p>
+<hr />
+<h3 id="sam-system-events-session-lifecycle">1.11 SAM system events —
+session lifecycle</h3>
+<p>Distinct topic tree (<code>/sam/events/...</code> not
+<code>/a2a/v1/...</code>):</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Direction</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{namespace}/sam/events/session/deleted</code></td>
+<td>Gateway → broker → all interested agents</td>
+<td>A user session was deleted in the WebUI; agents drop server-side
+state for it.</td>
+</tr>
+<tr>
+<td><code>{namespace}/sam/events/session/compact_request</code></td>
+<td>Gateway → agent</td>
+<td>Ask an agent to summarise/compact a long conversation to save
+tokens.</td>
+</tr>
+<tr>
+<td><code>{namespace}/sam/events/session/compact_response</code></td>
+<td>Agent → gateway</td>
+<td>Result of a compact-request (summary + token usage).</td>
+</tr>
+<tr>
+<td><code>{namespace}/sam/events/session/&gt;</code></td>
+<td>Subscription</td>
+<td>All session events. Used by <code>OrchestratorAgent</code>
+(<code>agent/sac/app.py:612</code>).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload — <code>SamEvent</code> envelope</strong> (from
+<code>common/sam_events/event_service.py</code>):</p>
+<pre class="jsonc"><code>{
+  &quot;event_type&quot;:       &quot;session.deleted&quot;,        // &quot;{category}.{action}&quot;
+  &quot;event_id&quot;:         &quot;9c2f...e8&quot;,
+  &quot;timestamp&quot;:        &quot;2026-09-14T10:50:00.000+00:00&quot;,
+  &quot;source_component&quot;: &quot;webui-7f3a&quot;,
+  &quot;namespace&quot;:        &quot;default_namespace/&quot;,
+  &quot;data&quot;: {
+    &quot;session_id&quot;: &quot;sess-...&quot;,
+    &quot;user_id&quot;:    &quot;sarah@example.com&quot;,
+    &quot;agent_id&quot;:   &quot;OrchestratorAgent&quot;,
+    &quot;gateway_id&quot;: &quot;webui-7f3a&quot;
+  }
+}</code></pre>
+<p>Per-action <code>data</code> shapes:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Action</th>
+<th><code>data</code> fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session.deleted</code></td>
+<td><code>session_id</code>, <code>user_id</code>,
+<code>agent_id</code>, <code>gateway_id</code></td>
+</tr>
+<tr>
+<td><code>session.compact_request</code></td>
+<td><code>session_id</code>, <code>user_id</code>,
+<code>agent_id</code>, <code>gateway_id</code>,
+<code>correlation_id</code>, <code>compaction_percentage</code></td>
+</tr>
+<tr>
+<td><code>session.compact_response</code></td>
+<td><code>correlation_id</code>, <code>success</code>,
+<code>events_compacted</code>, <code>summary</code>,
+<code>remaining_events</code>, <code>remaining_tokens</code>,
+<code>compaction_prompt_tokens</code>,
+<code>compaction_completion_tokens</code>,
+<code>error_message</code></td>
+</tr>
+</tbody>
+</table>
+<p>User-properties on the message: <code>eventType</code>,
+<code>eventId</code>.</p>
+<hr />
+<h3 id="sam-system-events-deep-research">1.12 SAM system events — deep
+research</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{namespace}/sam/events/deep_research/plan_response</code></td>
+<td>Response leg of the deep-research workflow (planning result from
+agent → gateway).</td>
+</tr>
+<tr>
+<td><code>{namespace}/sam/events/deep_research/&gt;</code></td>
+<td>Subscription used by agents
+(<code>agent/sac/app.py:613</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>Same <code>SamEvent</code> envelope as above; <code>data</code>
+carries the workflow-specific fields.</p>
+<hr />
+<h3 id="user-feedback">1.13 User feedback</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/sam/v1/feedback/submit</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/sam/v1/feedback/submit</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>Gateway (only when <code>frontend_collect_feedback: true</code>;
+this repo has it set to <code>false</code>)</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>Platform service / analytics consumers</td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>A user gave a thumbs-up/down on a response in the WebUI.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload — <code>FeedbackEvent</code></strong>
+(<code>common/a2a_spec/schemas/feedback_event.json</code>):</p>
+<pre class="jsonc"><code>{
+  &quot;id&quot;:           &quot;fb-...&quot;,                    // string, required
+  &quot;session_id&quot;:   &quot;sess-...&quot;,                  // required
+  &quot;task_id&quot;:      &quot;task-0a4...&quot;,               // required
+  &quot;user_id&quot;:      &quot;sarah@example.com&quot;,         // required
+  &quot;rating&quot;:       &quot;up&quot;,                        // &quot;up&quot; | &quot;down&quot;, required
+  &quot;comment&quot;:      &quot;Great match!&quot;,              // string | null
+  &quot;created_time&quot;: &quot;2026-09-14T10:51:00Z&quot;,      // ISO-8601 UTC, required
+  &quot;gateway_id&quot;:   &quot;webui-7f3a&quot;                 // required
+}</code></pre>
+<hr />
+<h3 id="agent-deregistration-event-legacy-path">1.14 Agent
+deregistration event (legacy path)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Publish topic</strong></td>
+<td><code>{namespace}/a2a/events/agent/deregistered</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>default_namespace/a2a/events/agent/deregistered</code></td>
+</tr>
+<tr>
+<td><strong>Publishers</strong></td>
+<td>An agent that just removed a peer from its registry because the
+peer’s health-check failed
+(<code>agent/sac/component.py:4052</code>).</td>
+</tr>
+<tr>
+<td><strong>Subscribers</strong></td>
+<td>Other agents / monitoring consumers.</td>
+</tr>
+<tr>
+<td><strong>Note</strong></td>
+<td>This topic uses the older <code>/a2a/events/...</code> form —
+<strong>not</strong> <code>/a2a/v1/sam/events/...</code> — and is the
+only legacy survivor in this layout.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload</strong></p>
+<pre class="jsonc"><code>{
+  &quot;event_type&quot;: &quot;agent.deregistered&quot;,
+  &quot;agent_name&quot;: &quot;PhotoAgent&quot;,
+  &quot;reason&quot;:     &quot;health_check_failure&quot;,
+  &quot;metadata&quot;: {
+    &quot;timestamp&quot;:      1726305600.123,
+    &quot;deregistered_by&quot;: &quot;OrchestratorAgent&quot;
+  }
+}</code></pre>
+<hr />
+<h3 id="scheduler-background-tasks">1.15 Scheduler (background
+tasks)</h3>
+<p>The WebUI gateway runs a scheduler service for background/cron-style
+tasks:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{namespace}a2a/v1/scheduler/response/{instance_id}</code></td>
+<td>Final result of a scheduled task back to the scheduler service.</td>
+</tr>
+<tr>
+<td><code>{namespace}a2a/v1/scheduler/status/{instance_id}</code></td>
+<td>Streaming status of a scheduled task.</td>
+</tr>
+</tbody>
+</table>
+<p>Source:
+<code>gateway/http_sse/services/scheduler/scheduler_service.py:940-941</code>.
+Used only when <code>background_tasks</code> is enabled in the gateway
+config (it is, in this project).</p>
+<hr />
+<h3 id="dynamic-model-provider-llm-bootstrap">1.16 Dynamic model
+provider (LLM bootstrap)</h3>
+<p>For dynamically-configurable LLM model providers (advanced):</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Direction</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{namespace}configuration/model/bootstrap/&gt;</code></td>
+<td>Subscription</td>
+<td>Agent listens for model-bootstrap requests.</td>
+</tr>
+<tr>
+<td><code>{namespace}configuration/model/response/{model_id}/{component_id}</code></td>
+<td>Publish</td>
+<td>Bootstrap response back to the requester.</td>
+</tr>
+</tbody>
+</table>
+<p>Source:
+<code>agent/adk/models/dynamic_model_provider_topics.py</code>. Not
+exercised by the wedding-planning agents in this repo, but the topics
+exist on the wire.</p>
+<hr />
+<h2 id="signal-data-parts-status-update-payloads">2. Signal data parts
+(status-update payloads)</h2>
+<p>Inside a <code>TaskStatusUpdateEvent</code> (topics
+<strong>1.5</strong>, <strong>1.7</strong>), the agent can attach
+structured signals via a <code>DataPart</code>. The five signal schemas
+live in <code>common/a2a_spec/schemas/</code>:</p>
+<h3 id="agent_progress_update">2.1
+<code>agent_progress_update</code></h3>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;agent_progress_update&quot;</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status_text&quot;</span><span class="fu">:</span> <span class="st">&quot;Analyzing the report...&quot;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Purpose: human-readable progress line (the “status_update” embed
+directive agents are instructed to send before every tool call).</p>
+<h3 id="tool_invocation_start">2.2
+<code>tool_invocation_start</code></h3>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;tool_invocation_start&quot;</span><span class="fu">,</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tool_name&quot;</span><span class="fu">:</span> <span class="st">&quot;search_venues&quot;</span><span class="fu">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tool_args&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;guests&quot;</span><span class="fu">:</span> <span class="dv">120</span><span class="fu">,</span> <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;London&quot;</span><span class="fu">,</span> <span class="dt">&quot;date&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-14&quot;</span> <span class="fu">},</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;function_call_id&quot;</span><span class="fu">:</span> <span class="st">&quot;fc-abc...&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Purpose: emitted just before a tool runs — drives the live tool-call
+indicator in the WebUI.</p>
+<h3 id="tool_result">2.3 <code>tool_result</code></h3>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;tool_result&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tool_name&quot;</span><span class="fu">:</span> <span class="st">&quot;search_venues&quot;</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;result_data&quot;</span><span class="fu">:</span> <span class="ot">[</span> <span class="er">/*</span> <span class="er">whatever</span> <span class="er">the</span> <span class="er">tool</span> <span class="er">returned</span> <span class="er">*/</span> <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;function_call_id&quot;</span><span class="fu">:</span> <span class="st">&quot;fc-abc...&quot;</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;llm_usage&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;input_tokens&quot;</span><span class="fu">:</span> <span class="dv">482</span><span class="fu">,</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;output_tokens&quot;</span><span class="fu">:</span> <span class="dv">31</span><span class="fu">,</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cached_input_tokens&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;model&quot;</span><span class="fu">:</span> <span class="st">&quot;claude-opus-4-6&quot;</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Purpose: emitted after a tool returns. <code>llm_usage</code> is
+present only if the tool internally called an LLM.</p>
+<h3 id="llm_invocation">2.4 <code>llm_invocation</code></h3>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;llm_invocation&quot;</span><span class="fu">,</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="er">/*</span> <span class="er">sanitized</span> <span class="er">LlmRequest</span> <span class="er">—</span> <span class="er">system</span> <span class="er">prompt,</span> <span class="er">tool</span> <span class="er">defs,</span> <span class="er">message</span> <span class="er">list</span> <span class="er">*/</span> <span class="fu">},</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;usage&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;input_tokens&quot;</span><span class="fu">:</span> <span class="dv">1240</span><span class="fu">,</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;output_tokens&quot;</span><span class="fu">:</span> <span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cached_input_tokens&quot;</span><span class="fu">:</span> <span class="dv">1100</span><span class="fu">,</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;model&quot;</span><span class="fu">:</span> <span class="st">&quot;claude-opus-4-6&quot;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Purpose: emitted around an LLM call. The <code>request</code> field
+is sanitized — secrets are stripped — and is logged to
+<code>task_logging</code> in the gateway if enabled.</p>
+<h3 id="artifact_creation_progress">2.5
+<code>artifact_creation_progress</code></h3>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;artifact_creation_progress&quot;</span><span class="fu">,</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;filename&quot;</span><span class="fu">:</span> <span class="st">&quot;catering_quote.txt&quot;</span><span class="fu">,</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Itemised quote for Bombay Brasserie&quot;</span><span class="fu">,</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;in-progress&quot;</span><span class="fu">,</span>          <span class="er">//</span> <span class="dt">&quot;in-progress&quot;</span> <span class="er">|</span> <span class="dt">&quot;completed&quot;</span> <span class="er">|</span> <span class="dt">&quot;failed&quot;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;bytes_transferred&quot;</span><span class="fu">:</span> <span class="dv">4096</span><span class="fu">,</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;artifact_chunk&quot;</span><span class="fu">:</span> <span class="st">&quot;...base64 chunk... (only when in-progress)&quot;</span><span class="fu">,</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;mime_type&quot;</span><span class="fu">:</span> <span class="st">&quot;text/plain&quot;</span><span class="fu">,</span>        <span class="er">//</span> <span class="er">only</span> <span class="er">when</span> <span class="er">completed</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Purpose: incremental progress while an artifact is being built and
+saved to the artifact store (<code>/tmp/samv2</code> for this
+project).</p>
+<hr />
+<h2 id="who-subscribes-to-what">3. Who subscribes to what</h2>
+<p>Each component’s effective subscription set (excluding
+scheduler/dynamic-model topics, which are conditional):</p>
+<h3 id="agent-e.g.-weddingvenueagent">Agent
+(e.g. <code>WeddingVenueAgent</code>)</h3>
+<pre><code>default_namespace/a2a/v1/agent/request/WeddingVenueAgent           # 1.4 — my requests
+default_namespace/a2a/v1/agent/response/WeddingVenueAgent/&gt;        # 1.6 — responses to my delegations
+default_namespace/a2a/v1/agent/status/WeddingVenueAgent/&gt;          # 1.5 — status from my delegations
+default_namespace/a2a/v1/discovery/&gt;                               # 1.3 — peer + gateway cards
+default_namespace/sam/events/session/&gt;                             # 1.11 — session lifecycle
+default_namespace/sam/events/deep_research/&gt;                       # 1.12 — research workflow</code></pre>
+<p><code>inter_agent_communication.allow_list</code> in the YAML
+restricts which agents this one is <em>permitted</em> to send requests
+to — it is enforced when the agent decides to publish on
+<strong>1.4</strong>, not by what it subscribes to.</p>
+<h3 id="webui-gateway">WebUI gateway</h3>
+<pre><code>default_namespace/a2a/v1/discovery/&gt;                                # 1.3 — agents + gateways
+default_namespace/a2a/v1/gateway/response/{webui_gateway_id}/&gt;      # 1.8 — responses to me
+default_namespace/a2a/v1/gateway/status/{webui_gateway_id}/&gt;        # 1.7 — status to me
+default_namespace/sam/events/session/compact_response               # 1.11 — compact replies</code></pre>
+<h3 id="platform-service">Platform service</h3>
+<pre><code>default_namespace/a2a/v1/discovery/&gt;                                # 1.3 — agents + gateways
+default_namespace/a2a/v1/trust/*/*                                  # 1.10 — trust cards
+default_namespace/sam/v1/feedback/submit                            # 1.13 — feedback events (if enabled)</code></pre>
+<h3 id="event-mesh-gateway-event-mesh-gw-01">Event Mesh Gateway
+(<code>event-mesh-gw-01</code>)</h3>
+<pre><code>wedding/alerts/&gt;                                                    # 1.17.1 — S3 connector events
+default_namespace/a2a/v1/discovery/&gt;                                # 1.3 — agents + gateways
+default_namespace/a2a/v1/gateway/response/event-mesh-gw-01/&gt;       # 1.8 — agent final responses
+default_namespace/a2a/v1/gateway/status/event-mesh-gw-01/&gt;         # 1.7 — agent streaming status</code></pre>
+<p>Publishes outbound on (data plane — no SAM namespace):</p>
+<pre><code>event_mesh/responses/{correlation_id}                               # 1.17.2 — success
+event_mesh/errors/{correlation_id}                                  # 1.17.2 — error</code></pre>
+<h3 id="firehose-debug">Firehose / debug</h3>
+<p>The WebUI exposes a visualization router
+(<code>gateway/http_sse/routers/visualization.py</code>) that subscribes
+to <code>default_namespace/a2a/&gt;</code> — every A2A message — for
+live debugging in the UI. Useful when demoing; do not enable in
+production.</p>
+<hr />
+<h3 id="event-mesh-gateway-configsgatewaysevent_mesh_gateway.yaml">Event
+Mesh Gateway
+(<code>configs/gateways/event_mesh_gateway.yaml</code>)</h3>
+<p>The Event Mesh Gateway is a second gateway that bridges
+<strong>external Solace topics</strong> (the “data plane”) into the SAM
+control plane. Unlike the WebUI gateway, it never interacts with a human
+— it watches application topics and converts events into A2A requests
+that the OrchestratorAgent handles.</p>
+<p>In this project its data-plane broker connection uses the same
+<code>SOLACE_BROKER_URL</code> env variable
+(<code>ws://localhost:9009</code>), but the topics it subscribes to and
+publishes on are <strong>outside the SAM namespace</strong> — they are
+plain Solace topics agreed upon between the Connector and your
+application code.</p>
+<h4 id="inbound-subscription-s3-micro-integration-connector">1.17.1
+Inbound subscription — S3 Micro Integration Connector</h4>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Topic</strong></td>
+<td><code>wedding/alerts/&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td><code>wedding/alerts/booking-update</code>,
+<code>wedding/alerts/s3-event</code></td>
+</tr>
+<tr>
+<td><strong>Publisher</strong></td>
+<td><strong>Solace S3 Micro Integration Connector</strong> — watches an
+S3 bucket and publishes a notification to a configurable Solace topic
+whenever an S3 object event occurs (upload, delete, etc.).</td>
+</tr>
+<tr>
+<td><strong>Subscriber</strong></td>
+<td>Event Mesh Gateway
+(<code>event_handlers[].subscriptions[].topic: "wedding/alerts/"</code>)</td>
+</tr>
+<tr>
+<td><strong>QoS</strong></td>
+<td>1 (at-least-once delivery, configured in
+<code>event_handlers.subscriptions.qos</code>)</td>
+</tr>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Triggers the wedding-alert notification flow. The gateway reads this
+event, wraps it in a prompt, and delegates to the
+OrchestratorAgent.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Payload (published by the S3 connector, JSON)</strong>:</p>
+<pre class="jsonc"><code>{
+  &quot;bucket&quot;:         &quot;wedding-docs&quot;,
+  &quot;key&quot;:            &quot;signed-contract.pdf&quot;,
+  &quot;event&quot;:          &quot;ObjectCreated&quot;,
+  &quot;correlation_id&quot;: &quot;abc-123&quot;           // used to correlate the response topic
+}</code></pre>
+<p><strong>Gateway transformation</strong> (from
+<code>event_handlers[].input_expression</code>):</p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">input_expression</span><span class="kw">: </span><span class="ch">&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  &quot;A wedding alert was received, please notify the guests on LINE:</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>   {{json://input.payload}}&quot;</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">target_agent_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;OrchestratorAgent&quot;</span></span></code></pre></div>
+<p>The gateway renders this template with the raw JSON payload and sends
+an A2A <code>message/send</code> request to
+<code>default_namespace/a2a/v1/agent/request/OrchestratorAgent</code>.
+From there the standard A2A flow takes over (§1.4 → §1.7/1.8).</p>
+<h4 id="outbound-response-topics">1.17.2 Outbound response topics</h4>
+<p>After the OrchestratorAgent replies, the gateway publishes the result
+on:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Handler</th>
+<th>Payload</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_mesh/responses/{correlation_id}</code></td>
+<td><code>success_response_handler</code></td>
+<td>Plain text (the agent’s reply text)</td>
+<td>Successful outcome — forwarded to whoever published the original
+alert</td>
+</tr>
+<tr>
+<td><code>event_mesh/errors/{correlation_id}</code></td>
+<td><code>error_response_handler</code></td>
+<td>JSON (A2A error object)</td>
+<td>Propagates agent failures back to the publisher</td>
+</tr>
+</tbody>
+</table>
+<p><code>{correlation_id}</code> is forwarded from the inbound message’s
+<strong>user property</strong> <code>correlation_id</code> via the
+gateway’s <code>forward_context</code> config. If the publisher does not
+set this user property, the
+<code>{{text://user_data.forward_context:correlation_id}}</code>
+expression evaluates to an empty string and the response topic becomes
+<code>event_mesh/responses/</code> (no suffix).</p>
+<p><strong>Success payload</strong>: plain UTF-8 text
+(e.g. <code>"LINE notification sent: venue booking confirmed."</code>).</p>
+<p><strong>Error payload</strong>:</p>
+<pre class="jsonc"><code>{
+  &quot;type&quot;: &quot;error&quot;,
+  &quot;error&quot;: {
+    &quot;type&quot;: &quot;internal_error&quot;,
+    &quot;message&quot;: &quot;...&quot;
+  }
+}</code></pre>
+<h4 id="how-it-uses-the-sam-control-plane-internally">1.17.3 How it uses
+the SAM control plane internally</h4>
+<p>The Event Mesh Gateway is still a SAM gateway internally — it uses
+the same A2A topics as the WebUI gateway to communicate with agents:</p>
+<ul>
+<li>Publishes the agent request on
+<code>default_namespace/a2a/v1/agent/request/OrchestratorAgent</code>
+(§1.4)</li>
+<li>Receives streaming status on
+<code>default_namespace/a2a/v1/gateway/status/event-mesh-gw-01/&gt;</code>
+(§1.7)</li>
+<li>Receives the final response on
+<code>default_namespace/a2a/v1/gateway/response/event-mesh-gw-01/{task_id}</code>
+(§1.8)</li>
+</ul>
+<p>Its gateway ID is <code>event-mesh-gw-01</code> (set in
+<code>app_config.gateway_id</code>).</p>
+<hr />
+<h2 id="full-topic-map-one-line-summary">4. Full topic map (one-line
+summary)</h2>
+<pre><code>wedding/                                 ← data-plane (no SAM namespace prefix)
+├── alerts/&gt;                             (1.17.1) S3 Micro Integration Connector publishes here
+│
+event_mesh/                              ← data-plane response topics
+├── responses/{correlation_id}           (1.17.2) gateway success response → plain text
+└── errors/{correlation_id}              (1.17.2) gateway error response → A2A error JSON
+
+default_namespace/
+├── a2a/
+│   ├── v1/
+│   │   ├── discovery/
+│   │   │   ├── agentcards                            (1.1)  agent self-advert
+│   │   │   └── gatewaycards                          (1.2)  gateway self-advert
+│   │   ├── agent/
+│   │   │   ├── request/{agent_name}                  (1.4)  delegate IN to agent
+│   │   │   ├── response/{delegator}/{sub_task_id}    (1.6)  final result back to delegator
+│   │   │   └── status/{delegator}/{sub_task_id}      (1.5)  streaming status back to delegator
+│   │   ├── gateway/
+│   │   │   ├── response/{gateway_id}/{task_id}       (1.8)  final result to gateway/user
+│   │   │   └── status/{gateway_id}/{task_id}         (1.7)  streaming status to gateway
+│   │   ├── client/
+│   │   │   ├── response/{client_id}                  (1.9)  no-gateway client variant
+│   │   │   └── status/{client_id}/{task_id}          (1.9)  no-gateway client variant
+│   │   ├── trust/{component_type}/{component_id}     (1.10) signed identity card
+│   │   └── scheduler/
+│   │       ├── response/{instance_id}                (1.15) background task result
+│   │       └── status/{instance_id}                  (1.15) background task progress
+│   └── events/
+│       └── agent/deregistered                        (1.14) legacy de-registration
+├── sam/
+│   ├── events/
+│   │   ├── session/deleted                           (1.11)
+│   │   ├── session/compact_request                   (1.11)
+│   │   ├── session/compact_response                  (1.11)
+│   │   └── deep_research/plan_response               (1.12)
+│   └── v1/
+│       └── feedback/submit                           (1.13) user thumbs-up/down
+└── configuration/
+    └── model/
+        ├── bootstrap/&gt;                               (1.16) dynamic model provider
+        └── response/{model_id}/{component_id}        (1.16)</code></pre>
+<hr />
+<h2 id="references">5. References</h2>
+<ul>
+<li>Topic builders:
+<code>solace_agent_mesh/common/a2a/protocol.py</code></li>
+<li>Event envelopes:
+<code>solace_agent_mesh/common/a2a/events.py</code>,
+<code>common/sam_events/event_service.py</code></li>
+<li>A2A type schema: <code>a2a/types.py</code> (the <code>a2a_sdk</code>
+package, v0.3.7)</li>
+<li>Signal-data JSON Schemas:
+<code>solace_agent_mesh/common/a2a_spec/schemas/</code></li>
+<li>Wildcard semantics: see <code>subscription_to_regex()</code> in
+<code>protocol.py:301</code></li>
+<li>Event Mesh Gateway config:
+<code>configs/gateways/event_mesh_gateway.yaml</code></li>
+<li>Orchestrator config (LINE tool, event monitoring):
+<code>configs/agents/main_orchestrator.yaml</code></li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,174 @@
+# Wedding Email Agent Configuration
+# Centralised email dispatch agent — called by Venue, Catering, and Decorator agents
+# to send structured booking request emails to vendors.
+
+log:
+  stdout_log_level: INFO
+  log_file_level: DEBUG
+  log_file: email-agent.log
+
+# Include shared configuration
+!include ../shared_config.yaml
+
+apps:
+  - name: email-agent-app
+    app_base_path: .
+    app_module: solace_agent_mesh.agent.sac.app
+    broker:
+      dev_mode: ${SOLACE_DEV_MODE, false}
+      broker_url: ${SOLACE_BROKER_URL, ws://localhost:9009}
+      broker_username: ${SOLACE_BROKER_USERNAME, default}
+      broker_password: ${SOLACE_BROKER_PASSWORD, default}
+      broker_vpn: ${SOLACE_BROKER_VPN, default}
+      temporary_queue: ${USE_TEMPORARY_QUEUES, true}
+
+    app_config:
+      namespace: ${NAMESPACE}
+      supports_streaming: true
+      agent_name: "EmailAgent"
+      display_name: "Wedding Email Agent"
+      model: *general_model
+      model_provider:
+        - "general"
+
+      instruction: |
+        You are the Wedding Email Agent. You are responsible for sending all
+        booking request emails on behalf of the user when they confirm a vendor
+        (venue, caterer, or decorator).
+
+        ────────────────────────────────────────────────────────
+        YOUR ROLE
+        ────────────────────────────────────────────────────────
+        You are invoked by other agents (WeddingVenueAgent, CateringAgent,
+        DecoratorAgent) when the user confirms a booking. You do NOT interact
+        with the user directly — you execute the email dispatch and return the
+        result to the calling agent.
+
+        ────────────────────────────────────────────────────────
+        SMTP CONFIGURATION
+        ────────────────────────────────────────────────────────
+        By default, emails are SIMULATED (logged but not sent).
+        To enable real email sending, set these environment variables:
+          SMTP_DEV_MODE=false
+          SMTP_HOST=smtp.gmail.com
+          SMTP_PORT=587
+          SMTP_USERNAME=your-email@gmail.com
+          SMTP_PASSWORD=your-app-password
+          SMTP_FROM_ADDRESS=your-email@gmail.com
+
+        ────────────────────────────────────────────────────────
+        AVAILABLE TOOLS (5)
+        ────────────────────────────────────────────────────────
+        1. **send_venue_booking_email**
+           Call when the user confirms a venue. Sends a formal booking request
+           to the venue's contact email with full event details.
+
+        2. **send_caterer_booking_email**
+           Call when the user confirms a caterer. Sends a booking request with
+           cuisine, dietary, alcohol, and dessert preferences.
+
+        3. **send_decorator_booking_email**
+           Call when the user confirms a decorator. Sends a booking request with
+           theme, flower, colour scheme, and budget details.
+
+        4. **send_full_wedding_summary_email**
+           Call after ALL three bookings are confirmed. Sends a complete wedding
+           planning summary to the couple's email address showing all vendors and
+           estimated total cost.
+
+        5. **save_email_log_report**
+           Save a log of all emails sent during the session as a text artifact.
+
+        ────────────────────────────────────────────────────────
+        RESPONSE FORMAT
+        ────────────────────────────────────────────────────────
+        After each successful email dispatch, return the tool's agent_response
+        field verbatim. Examples:
+          Venue:    "✅ A venue booking request has been sent on your behalf to [Venue]. Let's now proceed to confirm your caterer!"
+          Caterer:  "✅ A catering booking request has been sent on your behalf to [Caterer]. Let's now sort out your decorations!"
+          Decorator:"✅ A decoration booking request has been sent on your behalf to [Decorator]. Your wedding is coming together beautifully! 🎉"
+          Summary:  "🎊 A full wedding planning summary has been sent to your email address. Your venue, caterer, and decorator have all received booking requests. Congratulations!"
+
+      tools:
+        - group_name: artifact_management
+          tool_type: builtin-group
+
+        - tool_type: python
+          component_module: email_agent.tools
+          component_base_path: email-agent/src
+          function_name: send_venue_booking_email
+          tool_config: {}
+
+        - tool_type: python
+          component_module: email_agent.tools
+          component_base_path: email-agent/src
+          function_name: send_caterer_booking_email
+          tool_config: {}
+
+        - tool_type: python
+          component_module: email_agent.tools
+          component_base_path: email-agent/src
+          function_name: send_decorator_booking_email
+          tool_config: {}
+
+        - tool_type: python
+          component_module: email_agent.tools
+          component_base_path: email-agent/src
+          function_name: send_full_wedding_summary_email
+          tool_config: {}
+
+        - tool_type: python
+          component_module: email_agent.tools
+          component_base_path: email-agent/src
+          function_name: save_email_log_report
+          tool_config: {}
+
+      session_service:
+        type: "memory"
+        default_behavior: "PERSISTENT"
+
+      artifact_service:
+        type: "filesystem"
+        base_path: "/tmp/samv2"
+        artifact_scope: namespace
+
+      artifact_handling_mode: "reference"
+      enable_embed_resolution: true
+      enable_artifact_content_instruction: true
+
+      agent_card:
+        description: "Centralised wedding email dispatch agent. Sends structured booking
+          request emails to venue, caterer, and decorator contacts when bookings are
+          confirmed. Also sends a full wedding summary email to the couple."
+        defaultInputModes: ["text"]
+        defaultOutputModes: ["text"]
+        skills:
+          - id: "send_venue_booking_email"
+            name: "Send Venue Booking Email"
+            description: "Send a formal venue booking request email to the venue contact."
+          - id: "send_caterer_booking_email"
+            name: "Send Caterer Booking Email"
+            description: "Send a catering booking request email with cuisine and dietary details."
+          - id: "send_decorator_booking_email"
+            name: "Send Decorator Booking Email"
+            description: "Send a decoration booking request email with theme and style preferences."
+          - id: "send_full_wedding_summary_email"
+            name: "Send Full Wedding Summary"
+            description: "Send a complete wedding planning summary email to the couple."
+          - id: "save_email_log_report"
+            name: "Save Email Log Report"
+            description: "Save a log of all booking emails sent during the session."
+
+      agent_card_publishing:
+        interval_seconds: 10
+
+      agent_discovery:
+        enabled: true
+
+      inter_agent_communication:
+        allow_list:
+          - "WeddingVenueAgent"
+          - "CateringAgent"
+          - "DecoratorAgent"
+          - "OrchestratorAgent"
+        request_timeout_seconds: 60
